@@ -6,9 +6,18 @@
     "build": "vinxi build",
     "start": "vinxi start"
   },
+  "workspaces": [
+    "backend/*"
+  ],
   "dependencies": {
+    "@noble/secp256k1": "^2.2.3",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "daisyui": "^5.0.27",
+    "lucide-solid": "^0.503.0",
+    "nostr-tools": "^2.12.0",
+    "rxdb": "^16.11.0",
+    "rxjs": "^7.8.2",
     "solid-js": "^1.9.5",
     "vinxi": "^0.5.3"
   },
