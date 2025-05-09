@@ -38,13 +38,36 @@ export const collections = await db.addCollections({
       required: ["id", "text", "publicKey", "timestamp", "signature"],
     },
   },
+  servers: {
+    schema: {
+      version: 0,
+      primaryKey: "url",
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          maxLength: 100,
+        },
+      },
+      required: ["url"],
+    },
+  },
 });
 
-const replicationState = await replicateServer({
-  collection: collections.posts,
-  replicationIdentifier: "sns",
-  url: "http://localhost:8000/sync/0",
-  push: {},
-  pull: {},
-  live: true,
-});
+async function setupReplication() {
+  const servers = await db.servers.find().exec();
+  console.log("servers", servers);
+
+  for (const server of servers) {
+    await replicateServer({
+      collection: collections.posts,
+      replicationIdentifier: "sns",
+      url: server.url + "sync/0",
+      push: {},
+      pull: {},
+      live: true,
+    });
+  }
+}
+
+await setupReplication();

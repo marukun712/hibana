@@ -4,7 +4,7 @@ export default function Register() {
   const key = generateKeyPair();
 
   return (
-    <div class="container p-4 mx-auto h-screen">
+    <div>
       public key : {toHex(key.publicKey)}
       <br />
       private key : {toHex(key.privateKey)}
