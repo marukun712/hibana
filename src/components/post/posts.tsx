@@ -1,20 +1,15 @@
 import { createSignal, onMount, For } from "solid-js";
-import { db } from "~/lib/db/rxdb";
 import Post from "./post";
-import { verifySecureMessage } from "~/lib/crypto";
-import { Message } from "../../../@types";
+import { getPosts } from "~/lib/api/post";
+import { defaultEvent } from "../../../@types";
 
 export default function Posts() {
-  const [posts, setPosts] = createSignal<any[]>([]);
+  const [posts, setPosts] = createSignal<defaultEvent[]>([]);
 
   onMount(async () => {
-    const docs = await db.posts.find().exec();
+    const posts = await getPosts();
 
-    const verified = docs.filter(async (doc: Message) => {
-      return verifySecureMessage(doc);
-    });
-
-    setPosts(verified);
+    setPosts(posts);
   });
 
   return (

@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { db } from "~/lib/db/rxdb";
+import { setServer } from "~/lib/api/server";
 
 export default function Form() {
   const [serverURL, setServerURL] = createSignal("");
@@ -7,7 +7,7 @@ export default function Form() {
   async function registerServer(serverURL: string) {
     if (!serverURL.trim()) return;
 
-    await db.servers.insert({ url: serverURL });
+    await setServer(serverURL);
 
     setServerURL("");
   }

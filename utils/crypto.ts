@@ -1,10 +1,10 @@
 import * as secp256k1 from "@noble/secp256k1";
-import { Message } from "../../@types";
+import { defaultEvent } from "../@types";
 
 export const generateKeyPair = () => {
   const privateKey = secp256k1.utils.randomPrivateKey();
-  const publicKey = secp256k1.getPublicKey(privateKey);
-  return { privateKey, publicKey };
+  const publickey = secp256k1.getPublicKey(privateKey);
+  return { privateKey, publickey };
 };
 
 export const calculateHash = async (content: string): Promise<Uint8Array> => {
@@ -31,11 +31,11 @@ export const fromHex = (hex: string): Uint8Array => {
 };
 
 export const signMessage = async (
-  message: string,
+  content: string,
   privateKey: string
 ): Promise<string> => {
   try {
-    const messageHash = await calculateHash(message);
+    const messageHash = await calculateHash(content);
     const signature = await secp256k1.signAsync(messageHash, privateKey);
     const signatureBytes = new Uint8Array(signature.toCompactRawBytes());
     return toHex(signatureBytes);
@@ -46,15 +46,15 @@ export const signMessage = async (
 };
 
 export const verifySignature = async (
-  message: string,
+  publickey: string,
   signature: string,
-  publicKey: string
+  content: string
 ): Promise<boolean> => {
   try {
-    const messageHash = await calculateHash(message);
+    const messageHash = await calculateHash(content);
     const signatureBytes = fromHex(signature);
     const sig = secp256k1.Signature.fromCompact(signatureBytes);
-    return await secp256k1.verify(sig, messageHash, publicKey);
+    return await secp256k1.verify(sig, messageHash, publickey);
   } catch (error) {
     console.error("Signature verification error:", error);
     return false;
@@ -62,37 +62,32 @@ export const verifySignature = async (
 };
 
 export const createSecureMessage = async (
-  text: string,
+  event: string,
   timestamp: string,
+  message: Record<string, any>,
   privateKey: string
-): Promise<Message> => {
-  const message = {
-    text,
-    timestamp,
-  };
-  const content = JSON.stringify(message);
-  const messageHash = await calculateHash(content);
-  const signature = await signMessage(content, privateKey);
-  const publicKey = toHex(secp256k1.getPublicKey(privateKey));
+): Promise<defaultEvent> => {
+  const json = JSON.stringify({ event, timestamp, message });
+  const messageHash = await calculateHash(json);
+  const signature = await signMessage(json, privateKey);
+  const publickey = toHex(secp256k1.getPublicKey(privateKey));
 
   return {
     id: toHex(messageHash),
-    text,
-    publicKey,
-    timestamp,
+    publickey,
     signature,
+    event,
+    timestamp,
+    message,
   };
 };
 
 export const verifySecureMessage = async (
-  message: Message
+  data: defaultEvent
 ): Promise<boolean> => {
-  const { id, text, publicKey, timestamp, signature } = message;
+  const { id, publickey, signature, event, timestamp, message } = data;
 
-  const content = JSON.stringify({
-    text,
-    timestamp,
-  });
+  const content = JSON.stringify({ event, timestamp, message });
 
   const calculatedHash = toHex(await calculateHash(content));
 
@@ -101,5 +96,5 @@ export const verifySecureMessage = async (
     return false;
   }
 
-  return await verifySignature(content, signature, publicKey);
+  return await verifySignature(content, signature, publickey);
 };

@@ -1,6 +1,5 @@
 import { createSignal } from "solid-js";
-import { createSecureMessage } from "~/lib/crypto";
-import { db } from "~/lib/db/rxdb";
+import { postMessage } from "~/lib/api/post";
 
 export default function PostForm() {
   const [text, setText] = createSignal("");
@@ -9,11 +8,7 @@ export default function PostForm() {
   async function post(text: string) {
     if (!text.trim()) return;
 
-    const timestamp = new Date().toISOString();
-
-    const message = await createSecureMessage(text, timestamp, privateKey());
-
-    await db.posts.insert(message);
+    await postMessage(text, privateKey());
 
     setText("");
     setPrivateKey("");
