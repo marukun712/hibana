@@ -1,4 +1,4 @@
-import { defaultEvent } from "../../../@types";
+import { defaultEvent } from "../../../backend/db/schema";
 
 export class UserRepository {
   directory: FileSystemDirectoryHandle | null = null;
