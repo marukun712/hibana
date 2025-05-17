@@ -1,5 +1,5 @@
 import * as secp256k1 from "@noble/secp256k1";
-import { defaultEvent } from "../backend/db/schema";
+import type { defaultEvent } from "../backend/db/schema.ts";
 
 export class Crypto {
   private calculateHash: (content: string) => Promise<Uint8Array>;

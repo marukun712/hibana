@@ -1,12 +1,15 @@
 import { Hono } from "hono";
 import { validator } from "hono/validator";
-import { events, eventSchema, type defaultEvent } from "./db/schema";
-import { getDB } from "./db/db";
+import { events, eventSchema, type defaultEvent } from "./db/schema.ts";
+import { getDB } from "./db/db.ts";
 import { cors } from "hono/cors";
-import { Crypto } from "../utils/crypto";
-import { calculateHash } from "./lib/hash";
+import { Crypto } from "../utils/crypto.ts";
+import { calculateHash } from "./lib/hash.ts";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import { documentSchema, type documentType } from "./lib/ipfs/db.ts";
+import { getAllDocument, writeDocument } from "./lib/ipfs/index.ts";
+import { serve } from "@hono/node-server";
 
 const app = new Hono();
 
@@ -37,8 +40,22 @@ const postRoute = app.post(
       const verify = await crypto.verifySecureMessage(json);
 
       if (verify) {
+        const document: documentType = {
+          _id: json.id,
+          event: json.event,
+          publickey: json.publickey,
+        };
+
+        const parsed = documentSchema.safeParse(document);
+
+        if (parsed.success) {
+          await writeDocument(parsed.data);
+        }
+
         const db = getDB(json.publickey);
         await db.insert(events).values(json);
+
+        console.log(await getAllDocument());
 
         return c.json(json);
       } else {
@@ -96,7 +113,7 @@ const getPostRoute = app.get(
 export type postType = typeof postRoute;
 export type getPostType = typeof getPostRoute;
 
-export default {
-  port: 8000,
+serve({
   fetch: app.fetch,
-};
+  port: 8000,
+});

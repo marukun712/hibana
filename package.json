@@ -15,22 +15,12 @@
     "@orbitdb/core": "^2.5.0",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
-    "@sqlite.org/sqlite-wasm": "^3.49.1-build4",
-    "@types/pouchdb": "^6.4.2",
-    "@vitejs/plugin-basic-ssl": "^2.0.0",
     "daisyui": "^5.0.27",
     "helia": "^5.4.1",
     "hono": "^4.7.9",
-    "loro-crdt": "^1.5.4",
     "lucide-solid": "^0.503.0",
-    "pouchdb": "^9.0.0",
-    "pouchdb-find": "^9.0.0",
     "solid-js": "^1.9.5",
-    "vinxi": "^0.5.3",
-    "vite-plugin-mkcert": "^1.17.8",
-    "vite-plugin-top-level-await": "^1.5.0",
-    "vite-plugin-wasm": "^3.4.1",
-    "wa-sqlite": "rhashimoto/wa-sqlite"
+    "vinxi": "^0.5.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",

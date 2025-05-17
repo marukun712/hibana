@@ -10,9 +10,9 @@ export const postMessage = async (text: string, privateKey: string) => {
   const crypto = new Crypto(calculateHash);
 
   const message = await crypto.createSecureMessage(
-    "event.follow",
+    "event.post",
     timestamp,
-    { user: text },
+    { content: text },
     privateKey
   );
 
