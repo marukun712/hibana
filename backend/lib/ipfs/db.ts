@@ -12,15 +12,7 @@ let db: any;
 const address = "/orbitdb/zdpuAukSpmTeWB4MM7EW6wwvVRjSeuMkKNCTycyWpcLukfw9r";
 
 const options = libp2pDefaults();
-options.addresses!.listen = [
-  "/ip4/0.0.0.0/tcp/4001",
-  "/ip4/0.0.0.0/tcp/4001/ws",
-  "/ip4/0.0.0.0/udp/4001/webrtc-direct",
-  "/ip6/::/tcp/4001",
-  "/ip6/::/tcp/4001/ws",
-  "/ip6/::/udp/4001/webrtc-direct",
-  "/p2p-circuit",
-];
+options.addresses!.listen = ["/ip4/0.0.0.0/tcp/4001"];
 options.services.pubsub = gossipsub({ allowPublishToZeroTopicPeers: true });
 options.services.identify = identify();
 
