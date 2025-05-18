@@ -1,14 +1,15 @@
-import { eventRouteType } from "../../../../backend";
+import { eventRouteType, feedRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { Crypto } from "../../../../utils/crypto";
-const client = hc<eventRouteType>("http://localhost:8000");
 
 export const postEvent = async (
   event: string,
   content: Record<string, any>,
   privateKey: string
 ) => {
+  const client = hc<eventRouteType>("http://localhost:8000");
+
   const timestamp = new Date().toISOString();
 
   const crypto = new Crypto(calculateHash);
@@ -23,4 +24,12 @@ export const postEvent = async (
   const res = await client.event.$post({ json: message });
 };
 
-export const getPosts = async () => {};
+export const getPosts = async () => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({ query: { event: "event.post" } });
+
+  const feed = await res.json();
+
+  return feed;
+};

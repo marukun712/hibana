@@ -12,4 +12,6 @@ export const events = sqliteTable("events", {
 });
 
 export const eventSchema = createSelectSchema(events);
-export type defaultEvent = z.infer<typeof eventSchema>;
+export type defaultEvent = z.infer<typeof eventSchema> & {
+  message: Record<string, any>;
+};

@@ -47,7 +47,6 @@ const getPostRoute = app.get(
 
       if (post) {
         const crypto = new Crypto(calculateHash);
-
         const verify = await crypto.verifySecureMessage(post as defaultEvent);
 
         if (verify) {
@@ -118,8 +117,10 @@ const feedRoute = app.get(
                 query: { id: post.value._id, publickey: post.value.publickey },
               });
 
+              const json: defaultEvent = await data.json();
+
               if (data.status == 200) {
-                return data.json();
+                return { ...json, user: doc };
               } else {
                 return null;
               }
@@ -202,7 +203,6 @@ const eventRoute = app
 
       try {
         const crypto = new Crypto(calculateHash);
-
         const verify = await crypto.verifySecureMessage(json);
 
         if (verify) {
@@ -256,9 +256,7 @@ const profileRoute = app
 
       try {
         const doc = await getProfileDoc(publickey);
-
         const crypto = new Crypto(calculateHash);
-
         const verify = await crypto.verifyUserDoc(doc);
 
         if (verify) {
@@ -286,7 +284,8 @@ const profileRoute = app
       const json = c.req.valid("json");
 
       try {
-        const verify = await new Crypto(calculateHash).verifyUserDoc(json);
+        const crypto = new Crypto(calculateHash);
+        const verify = await crypto.verifyUserDoc(json);
 
         if (verify) {
           const doc = await updateUser(json);
