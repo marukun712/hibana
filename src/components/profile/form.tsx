@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js";
 import { updateProfile } from "~/lib/api/users";
 
-export default function PostForm() {
+export default function ProfileForm() {
   const [username, setUsername] = createSignal("");
   const [icon, setIcon] = createSignal("");
   const [description, setDescription] = createSignal("");

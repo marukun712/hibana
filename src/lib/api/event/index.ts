@@ -33,3 +33,15 @@ export const getPosts = async () => {
 
   return feed;
 };
+
+export const getUserPosts = async (publickey: string) => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({
+    query: { event: "event.post", publickey },
+  });
+
+  const feed = await res.json();
+
+  return feed;
+};

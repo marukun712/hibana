@@ -119,6 +119,12 @@ const feedRoute = app.get(
 
               const json: defaultEvent = await data.json();
 
+              const crypto = new Crypto(calculateHash);
+              const verify = await crypto.verifySecureMessage(json);
+              if (!verify) {
+                return null;
+              }
+
               if (data.status == 200) {
                 return { ...json, user: doc };
               } else {
@@ -132,7 +138,7 @@ const feedRoute = app.get(
 
         return c.json(feed.filter((post) => post !== null));
       } else {
-        return c.text("Post is not found.", 400);
+        return c.text("Event is not found.", 400);
       }
     } catch (e) {
       console.log(e);
@@ -177,7 +183,15 @@ const eventRoute = app
           });
 
           if (data.status == 200) {
-            return c.json(await data.json());
+            const json: defaultEvent = await data.json();
+
+            const crypto = new Crypto(calculateHash);
+            const verify = await crypto.verifySecureMessage(json);
+            if (!verify) {
+              return c.text("Verify failed.", 400);
+            }
+
+            return c.json({ ...json, user: doc });
           }
         } else {
           return c.text("Post is not found.", 400);

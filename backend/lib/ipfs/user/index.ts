@@ -22,7 +22,6 @@ export const updateUser = async (data: profileType) => {
   };
 
   await writeDocument(document);
-
   return document;
 };
 
@@ -36,6 +35,5 @@ export const getProfileDoc = async (publickey: string) => {
   const cid = record._id;
 
   const doc: profileType = await j.get(CID.parse(cid));
-
   return doc;
 };

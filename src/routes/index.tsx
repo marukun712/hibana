@@ -1,13 +1,11 @@
-import { clientOnly } from "@solidjs/start";
+import PostForm from "~/components/post/form";
+import Feed from "~/components/post/feed";
 
-const Form = clientOnly(() => import("../components/post/form"));
-const Posts = clientOnly(() => import("../components/post/posts"));
-
-export default function PostForm() {
+export default function Index() {
   return (
     <div>
-      <Form />
-      <Posts />
+      <PostForm />
+      <Feed />
     </div>
   );
 }

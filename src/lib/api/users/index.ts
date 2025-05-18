@@ -1,4 +1,4 @@
-import { eventRouteType, profileRouteType } from "../../../../backend";
+import { profileRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { Crypto } from "../../../../utils/crypto";
@@ -24,5 +24,11 @@ export const updateProfile = async (
     privateKey
   );
 
-  const res = await client.profile.$post({ json: doc });
+  await client.profile.$post({ json: doc });
+};
+
+export const getProfile = async (publickey: string) => {
+  const res = await client.profile.$get({ query: { publickey } });
+
+  return res.json();
 };

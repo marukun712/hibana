@@ -1,5 +1,5 @@
 import { text, sqliteTable } from "drizzle-orm/sqlite-core";
-import { createSelectSchema } from "drizzle-zod";
+import { createSelectSchema, type Json } from "drizzle-zod";
 import { z } from "zod";
 
 export const events = sqliteTable("events", {
@@ -13,5 +13,5 @@ export const events = sqliteTable("events", {
 
 export const eventSchema = createSelectSchema(events);
 export type defaultEvent = z.infer<typeof eventSchema> & {
-  message: Record<string, any>;
+  message: Json | Record<string, any>;
 };
