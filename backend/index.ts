@@ -8,8 +8,15 @@ import { calculateHash } from "./lib/hash.ts";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { documentSchema, type documentType } from "./lib/ipfs/db.ts";
-import { getAllDocument, writeDocument } from "./lib/ipfs/index.ts";
+import {
+  getAllDocument,
+  searchDocument,
+  writeDocument,
+} from "./lib/ipfs/events/index.ts";
 import { serve } from "@hono/node-server";
+import { hc } from "hono/client";
+import { getProfileDoc, updateUser } from "./lib/ipfs/user/index.ts";
+import { profileSchema } from "./lib/ipfs/helia.ts";
 
 const app = new Hono();
 
@@ -17,56 +24,6 @@ const getSchema = z.object({
   publickey: z.string(),
   id: z.string(),
 });
-
-app.use("/post", cors());
-const postRoute = app.post(
-  "/post",
-  validator("json", (value, c) => {
-    const parsed = eventSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.text("Invalid Schema.", 400);
-    }
-
-    return parsed.data;
-  }),
-  async (c) => {
-    const json = c.req.valid("json");
-
-    console.log(json);
-
-    try {
-      const crypto = new Crypto(calculateHash);
-
-      const verify = await crypto.verifySecureMessage(json);
-
-      if (verify) {
-        const document: documentType = {
-          _id: json.id,
-          event: json.event,
-          publickey: json.publickey,
-        };
-
-        const parsed = documentSchema.safeParse(document);
-
-        if (parsed.success) {
-          await writeDocument(parsed.data);
-        }
-
-        const db = getDB(json.publickey);
-        await db.insert(events).values(json);
-
-        console.log(await getAllDocument());
-
-        return c.json(json);
-      } else {
-        return c.text("Verify failed.", 400);
-      }
-    } catch (e) {
-      console.log(e);
-      return c.text("Post failed.", 500);
-    }
-  }
-);
 
 app.use("/get", cors());
 const getPostRoute = app.get(
@@ -81,8 +38,6 @@ const getPostRoute = app.get(
   }),
   async (c) => {
     const json = c.req.valid("query");
-
-    console.log(json);
 
     try {
       const db = getDB(json.publickey);
@@ -105,13 +60,249 @@ const getPostRoute = app.get(
       }
     } catch (e) {
       console.log(e);
-      return c.text("Get failed.", 500);
+      return c.text("Fetch failed.", 500);
     }
   }
 );
 
-export type postType = typeof postRoute;
-export type getPostType = typeof getPostRoute;
+export type getRouteType = typeof getPostRoute;
+
+const feedSchema = z.object({
+  publickey: z.string().optional(),
+  event: z.string().optional(),
+});
+
+app.use("/feed", cors());
+const feedRoute = app.get(
+  "/feed",
+  validator("query", (value, c) => {
+    const parsed = feedSchema.safeParse(value);
+    if (!parsed.success) {
+      return c.text("Invalid Schema.", 400);
+    }
+
+    return parsed.data;
+  }),
+  async (c) => {
+    const { publickey, event } = c.req.valid("query");
+
+    const query: Record<string, string> = {};
+
+    if (publickey) {
+      query.publickey = publickey;
+    }
+
+    if (event) {
+      query.event = event;
+    }
+
+    try {
+      const posts =
+        publickey || event
+          ? await searchDocument(query)
+          : await getAllDocument();
+
+      if (posts) {
+        const feed = await Promise.all(
+          posts.map(async (post: { value: documentType }) => {
+            const doc = await getProfileDoc(post.value.publickey);
+            if (!doc) return null;
+            const client = hc<getRouteType>(doc.repository);
+
+            try {
+              if (post.value.event == "event.profile") {
+                return null;
+              }
+
+              const data = await client.get.$get({
+                query: { id: post.value._id, publickey: post.value.publickey },
+              });
+
+              if (data.status == 200) {
+                return data.json();
+              } else {
+                return null;
+              }
+            } catch {
+              return null;
+            }
+          })
+        );
+
+        return c.json(feed.filter((post) => post !== null));
+      } else {
+        return c.text("Post is not found.", 400);
+      }
+    } catch (e) {
+      console.log(e);
+      return c.text("Fetch failed.", 500);
+    }
+  }
+);
+
+export type feedRouteType = typeof feedRoute;
+
+const eventQuerySchema = z.object({
+  id: z.string(),
+});
+
+app.use("/event", cors());
+const eventRoute = app
+  .get(
+    "/event",
+    validator("query", (value, c) => {
+      const parsed = eventQuerySchema.safeParse(value);
+      if (!parsed.success) {
+        return c.text("Invalid Schema.", 400);
+      }
+
+      return parsed.data;
+    }),
+    async (c) => {
+      const { id } = c.req.valid("query");
+
+      try {
+        const data = await searchDocument({ _id: id });
+
+        const event: documentType = data[0].value;
+
+        if (event) {
+          const doc = await getProfileDoc(event.publickey);
+          if (!doc) return c.text("User is not found.", 400);
+          const client = hc<getRouteType>(doc.repository);
+
+          const data = await client.get.$get({
+            query: { id: event._id, publickey: event.publickey },
+          });
+
+          if (data.status == 200) {
+            return c.json(await data.json());
+          }
+        } else {
+          return c.text("Post is not found.", 400);
+        }
+      } catch (e) {
+        console.log(e);
+        return c.text("Fetch failed.", 500);
+      }
+    }
+  )
+  .post(
+    "/event",
+    validator("json", (value, c) => {
+      const parsed = eventSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.text("Invalid Schema.", 400);
+      }
+
+      return parsed.data;
+    }),
+    async (c) => {
+      const json = c.req.valid("json");
+
+      try {
+        const crypto = new Crypto(calculateHash);
+
+        const verify = await crypto.verifySecureMessage(json);
+
+        if (verify) {
+          const document: documentType = {
+            _id: json.id,
+            event: json.event,
+            publickey: json.publickey,
+            timestamp: json.timestamp,
+          };
+
+          const parsed = documentSchema.safeParse(document);
+
+          if (parsed.success) {
+            await writeDocument(parsed.data);
+          }
+
+          const db = getDB(json.publickey);
+          await db.insert(events).values(json);
+
+          return c.json(json);
+        } else {
+          return c.text("Verify failed.", 400);
+        }
+      } catch (e) {
+        console.log(e);
+        return c.text("Post failed.", 500);
+      }
+    }
+  );
+
+export type eventRouteType = typeof eventRoute;
+
+const profileQuerySchema = z.object({
+  publickey: z.string(),
+});
+
+app.use("/profile", cors());
+const profileRoute = app
+  .get(
+    "/profile",
+    validator("query", (value, c) => {
+      const parsed = profileQuerySchema.safeParse(value);
+      if (!parsed.success) {
+        return c.text("Invalid Schema.", 400);
+      }
+
+      return parsed.data;
+    }),
+    async (c) => {
+      const { publickey } = c.req.valid("query");
+
+      try {
+        const doc = await getProfileDoc(publickey);
+
+        const crypto = new Crypto(calculateHash);
+
+        const verify = await crypto.verifyUserDoc(doc);
+
+        if (verify) {
+          return c.json(doc);
+        } else {
+          return c.text("Verify failed.", 400);
+        }
+      } catch (e) {
+        console.log(e);
+        return c.text("Fetch failed.", 500);
+      }
+    }
+  )
+  .post(
+    "/profile",
+    validator("json", (value, c) => {
+      const parsed = profileSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.text("Invalid Schema.", 400);
+      }
+
+      return parsed.data;
+    }),
+    async (c) => {
+      const json = c.req.valid("json");
+
+      try {
+        const verify = await new Crypto(calculateHash).verifyUserDoc(json);
+
+        if (verify) {
+          const doc = await updateUser(json);
+
+          return c.json(doc);
+        } else {
+          return c.text("Verify failed.", 400);
+        }
+      } catch (e) {
+        console.log(e);
+        return c.text("Update failed.", 500);
+      }
+    }
+  );
+
+export type profileRouteType = typeof profileRoute;
 
 serve({
   fetch: app.fetch,

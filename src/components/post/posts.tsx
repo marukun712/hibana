@@ -1,6 +1,6 @@
 import { createSignal, onMount, For } from "solid-js";
 import Post from "./post";
-import { getPosts } from "~/lib/api/post";
+import { getPosts } from "~/lib/api/event";
 import { defaultEvent } from "../../../backend/db/schema";
 
 export default function Posts() {

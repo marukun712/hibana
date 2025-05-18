@@ -1,5 +1,6 @@
 import * as secp256k1 from "@noble/secp256k1";
 import type { defaultEvent } from "../backend/db/schema.ts";
+import type { profileType } from "../backend/lib/ipfs/helia.ts";
 
 export class Crypto {
   private calculateHash: (content: string) => Promise<Uint8Array>;
@@ -68,6 +69,72 @@ export class Crypto {
   async verifySecureMessage(data: defaultEvent): Promise<boolean> {
     const { id, publickey, signature, event, timestamp, message } = data;
     const content = JSON.stringify({ event, timestamp, message });
+
+    const calculatedHash = secp256k1.etc.bytesToHex(
+      await this.calculateHash(content)
+    );
+
+    if (calculatedHash !== id) {
+      console.error("Hash mismatch: possible message tampering");
+      return false;
+    }
+
+    return await this.verifySignature(publickey, signature, content);
+  }
+
+  async createUserDoc(
+    username: string,
+    icon: string,
+    description: string,
+    repository: string,
+    updatedAt: string,
+    privateKey: string
+  ): Promise<profileType> {
+    const json = JSON.stringify({
+      username,
+      icon,
+      description,
+      repository,
+      updatedAt,
+    });
+
+    const messageHash = await this.calculateHash(json);
+    const signature = await this.signMessage(json, privateKey);
+    const publickey = secp256k1.etc.bytesToHex(
+      secp256k1.getPublicKey(privateKey)
+    );
+
+    return {
+      id: secp256k1.etc.bytesToHex(messageHash),
+      publickey,
+      signature,
+      username,
+      icon,
+      description,
+      repository,
+      updatedAt,
+    };
+  }
+
+  async verifyUserDoc(data: profileType): Promise<boolean> {
+    const {
+      id,
+      publickey,
+      signature,
+      username,
+      icon,
+      description,
+      repository,
+      updatedAt,
+    } = data;
+
+    const content = JSON.stringify({
+      username,
+      icon,
+      description,
+      repository,
+      updatedAt,
+    });
 
     const calculatedHash = secp256k1.etc.bytesToHex(
       await this.calculateHash(content)

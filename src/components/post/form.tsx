@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { postMessage } from "~/lib/api/post";
+import { postEvent } from "~/lib/api/event";
 
 export default function PostForm() {
   const [text, setText] = createSignal("");
@@ -8,7 +8,7 @@ export default function PostForm() {
   async function post(text: string) {
     if (!text.trim()) return;
 
-    await postMessage(text, privateKey());
+    await postEvent("event.post", { content: text }, privateKey());
 
     setText("");
     setPrivateKey("");

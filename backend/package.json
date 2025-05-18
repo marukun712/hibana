@@ -12,6 +12,7 @@
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "@constl/orbit-db-types": "^2.0.6",
+    "@did-ipns/kit": "^1.0.0",
     "@helia/json": "^4.0.5",
     "@hono/node-server": "^1.14.1",
     "@libsql/client": "^0.15.6",

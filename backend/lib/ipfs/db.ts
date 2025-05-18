@@ -19,12 +19,13 @@ export const documentSchema = z.object({
   _id: z.string(),
   event: z.string(),
   publickey: z.string(),
+  timestamp: z.string(),
 });
+
+export type documentType = z.infer<typeof documentSchema>;
 
 const blockstore = new FsBlockstore("./orbitdb/store");
 const datastore = new LevelDatastore("./orbitdb/store");
-
-export type documentType = z.infer<typeof documentSchema>;
 
 export const getDB = async () => {
   if (db) {
