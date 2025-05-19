@@ -1,28 +1,35 @@
-import { getDB, type documentType } from "../db.ts";
-import {
-  getAllDocument,
-  searchDocument,
-  writeDocument,
-} from "../events/index.ts";
+import { Crypto } from "../../../../utils/crypto.ts";
+import { calculateHash } from "../../hash.ts";
+import { type documentType } from "../db.ts";
+import { searchDocument, writeDocument } from "../events/index.ts";
 import { getHelia, type profileType } from "../helia.ts";
 import { json } from "@helia/json";
 import { CID } from "multiformats/cid";
 
 export const updateUser = async (data: profileType) => {
-  const helia = await getHelia();
-  const j = json(helia);
+  const crypto = new Crypto(calculateHash);
+  const verify = await crypto.verifyUserDoc(data);
 
-  const cid = await j.add(data);
+  if (verify) {
+    const helia = await getHelia();
+    const j = json(helia);
 
-  const document: documentType = {
-    _id: cid.toString(),
-    event: "event.profile",
-    publickey: data.publickey,
-    timestamp: new Date().toISOString(),
-  };
+    const cid = await j.add(data);
 
-  await writeDocument(document);
-  return document;
+    const document: documentType = {
+      _id: cid.toString(),
+      event: "event.profile",
+      publickey: data.publickey,
+      timestamp: new Date().toISOString(),
+    };
+
+    await writeDocument(document);
+    await helia.routing.provide(cid);
+
+    return document;
+  } else {
+    return null;
+  }
 };
 
 export const getProfileDoc = async (publickey: string) => {
@@ -35,5 +42,10 @@ export const getProfileDoc = async (publickey: string) => {
   const cid = record._id;
 
   const doc: profileType = await j.get(CID.parse(cid));
-  return doc;
+
+  const crypto = new Crypto(calculateHash);
+  const verify = await crypto.verifyUserDoc(doc);
+
+  if (verify) return doc;
+  else return null;
 };

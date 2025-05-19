@@ -21,6 +21,7 @@
     "better-sqlite3": "^11.10.0",
     "blockstore-fs": "^2.0.2",
     "datastore-level": "^11.0.1",
+    "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.1",

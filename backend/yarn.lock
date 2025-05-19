@@ -2698,6 +2698,11 @@ dns-packet@^5.2.2, dns-packet@^5.6.1:
   dependencies:
     "@leichtgewicht/ip-codec" "^2.0.1"
 
+dotenv@^16.5.0:
+  version "16.5.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.5.0.tgz#092b49f25f808f020050051d1ff258e404c78692"
+  integrity sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==
+
 drizzle-kit@^0.31.1:
   version "0.31.1"
   resolved "https://registry.yarnpkg.com/drizzle-kit/-/drizzle-kit-0.31.1.tgz#1d8ce8216a638cdbbb2752cf9dcc14b437367969"

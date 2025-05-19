@@ -96,6 +96,8 @@ const feedRoute = app.get(
     }
 
     try {
+      console.log(await getAllDocument());
+
       const posts =
         publickey || event
           ? await searchDocument(query)
@@ -298,16 +300,10 @@ const profileRoute = app
       const json = c.req.valid("json");
 
       try {
-        const crypto = new Crypto(calculateHash);
-        const verify = await crypto.verifyUserDoc(json);
+        const doc = await updateUser(json);
 
-        if (verify) {
-          const doc = await updateUser(json);
-
-          return c.json(doc);
-        } else {
-          return c.text("Verify failed.", 400);
-        }
+        if (doc) return c.json(doc);
+        else return c.text("Verify failed");
       } catch (e) {
         console.log(e);
         return c.text("Update failed.", 500);

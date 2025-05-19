@@ -3,6 +3,8 @@ import { createLibp2p } from "libp2p";
 import { LevelDatastore } from "datastore-level";
 import { FsBlockstore } from "blockstore-fs";
 import { z } from "zod";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 let helia: any;
 
@@ -20,6 +22,7 @@ export const profileSchema = z.object({
 export type profileType = z.infer<typeof profileSchema>;
 
 const options = libp2pDefaults();
+options.addresses!.listen = [`/ip4/${process.env.GLOBAL_IP}/tcp/4002`];
 
 const blockstore = new FsBlockstore("./helia/store");
 const datastore = new LevelDatastore("./helia/store");

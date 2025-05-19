@@ -6,13 +6,15 @@ import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { identify } from "@libp2p/identify";
 import { LevelDatastore } from "datastore-level";
 import { FsBlockstore } from "blockstore-fs";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 let db: any;
 
 const address = "/orbitdb/zdpuAukSpmTeWB4MM7EW6wwvVRjSeuMkKNCTycyWpcLukfw9r";
 
 const options = libp2pDefaults();
-options.addresses!.listen = ["/ip4/0.0.0.0/tcp/4001"];
+options.addresses!.listen = [`/ip4/${process.env.GLOBAL_IP}/tcp/4001`];
 options.services.pubsub = gossipsub({ allowPublishToZeroTopicPeers: true });
 options.services.identify = identify();
 
