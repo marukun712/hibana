@@ -1,30 +1,29 @@
 import { Hono } from "hono";
 import { validator } from "hono/validator";
-import { events, eventSchema, type defaultEvent } from "./db/schema.ts";
-import { getDB } from "./db/db.ts";
+import { defaultEventSchema } from "./db/schema.ts";
 import { cors } from "hono/cors";
-import { Crypto } from "../utils/crypto.ts";
-import { calculateHash } from "./lib/hash.ts";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { documentSchema, type documentType } from "./lib/ipfs/db.ts";
+import { type documentType } from "./lib/ipfs/db.ts";
 import {
   getAllDocument,
+  putEvent,
+  resolveRepositoryDocument,
   searchDocument,
-  writeDocument,
 } from "./lib/ipfs/events/index.ts";
 import { serve } from "@hono/node-server";
-import { hc } from "hono/client";
-import { getProfileDoc, updateUser } from "./lib/ipfs/user/index.ts";
+import { findProfileDoc, updateUser } from "./lib/ipfs/user/index.ts";
 import { profileSchema } from "./lib/ipfs/helia.ts";
+import { getRecord } from "./db/index.ts";
+import { createFeed } from "./lib/ipfs/feed/index.ts";
 
 const app = new Hono();
 
+// リレーからの要求に対してリポジトリのレコードを返す
 const getSchema = z.object({
   publickey: z.string(),
   id: z.string(),
 });
-
+export type getSchemaType = z.infer<typeof getSchema>;
 app.use("/get", cors());
 const getPostRoute = app.get(
   "/get",
@@ -39,38 +38,28 @@ const getPostRoute = app.get(
   async (c) => {
     const json = c.req.valid("query");
 
+    //ユーザーリポジトリからデータを取得
     try {
-      const db = getDB(json.publickey);
-      const data = await db.select().from(events).where(eq(events.id, json.id));
+      const record = await getRecord(json);
 
-      const post = data[0];
-
-      if (post) {
-        const crypto = new Crypto(calculateHash);
-        const verify = await crypto.verifySecureMessage(post as defaultEvent);
-
-        if (verify) {
-          return c.json(post);
-        } else {
-          return c.text("Verify failed.", 400);
-        }
+      if (record) {
+        return c.json(record);
       } else {
-        return c.text("Post is not found.", 400);
+        c.text("Record is not found.", 400);
       }
     } catch (e) {
       console.log(e);
-      return c.text("Fetch failed.", 500);
+      return c.text("An error has occurred.", 500);
     }
   }
 );
-
 export type getRouteType = typeof getPostRoute;
 
+// イベントをfeedとして返す
 const feedSchema = z.object({
   publickey: z.string().optional(),
   event: z.string().optional(),
 });
-
 app.use("/feed", cors());
 const feedRoute = app.get(
   "/feed",
@@ -83,14 +72,14 @@ const feedRoute = app.get(
     return parsed.data;
   }),
   async (c) => {
+    //publickey(投稿者)、eventで絞り込み
     const { publickey, event } = c.req.valid("query");
 
+    //クエリを構築
     const query: Record<string, string> = {};
-
     if (publickey) {
       query.publickey = publickey;
     }
-
     if (event) {
       query.event = event;
     }
@@ -103,42 +92,11 @@ const feedRoute = app.get(
           ? await searchDocument(query)
           : await getAllDocument();
 
+      //eventをfeedにして返す
       if (posts) {
-        const feed = await Promise.all(
-          posts.map(async (post: { value: documentType }) => {
-            const doc = await getProfileDoc(post.value.publickey);
-            if (!doc) return null;
-            const client = hc<getRouteType>(doc.repository);
+        const feed = await createFeed(posts);
 
-            try {
-              if (post.value.event == "event.profile") {
-                return null;
-              }
-
-              const data = await client.get.$get({
-                query: { id: post.value._id, publickey: post.value.publickey },
-              });
-
-              const json: defaultEvent = await data.json();
-
-              const crypto = new Crypto(calculateHash);
-              const verify = await crypto.verifySecureMessage(json);
-              if (!verify) {
-                return null;
-              }
-
-              if (data.status == 200) {
-                return { ...json, user: doc };
-              } else {
-                return null;
-              }
-            } catch {
-              return null;
-            }
-          })
-        );
-
-        return c.json(feed.filter((post) => post !== null));
+        return c.json(feed);
       } else {
         return c.text("Event is not found.", 400);
       }
@@ -148,13 +106,12 @@ const feedRoute = app.get(
     }
   }
 );
-
 export type feedRouteType = typeof feedRoute;
 
+//特定のeventを返す
 const eventQuerySchema = z.object({
   id: z.string(),
 });
-
 app.use("/event", cors());
 const eventRoute = app
   .get(
@@ -170,33 +127,23 @@ const eventRoute = app
     async (c) => {
       const { id } = c.req.valid("query");
 
+      //eventを検索
       try {
         const data = await searchDocument({ _id: id });
 
-        const event: documentType = data[0].value;
+        if (data[0]) {
+          const event: documentType = data[0].value;
 
-        if (event) {
-          const doc = await getProfileDoc(event.publickey);
-          if (!doc) return c.text("User is not found.", 400);
-          const client = hc<getRouteType>(doc.repository);
+          //eventを解決
+          const record = await resolveRepositoryDocument(event);
 
-          const data = await client.get.$get({
-            query: { id: event._id, publickey: event.publickey },
-          });
-
-          if (data.status == 200) {
-            const json: defaultEvent = await data.json();
-
-            const crypto = new Crypto(calculateHash);
-            const verify = await crypto.verifySecureMessage(json);
-            if (!verify) {
-              return c.text("Verify failed.", 400);
-            }
-
-            return c.json({ ...json, user: doc });
+          if (record) {
+            return c.json(record);
+          } else {
+            return c.text("Event is not found.", 400);
           }
         } else {
-          return c.text("Post is not found.", 400);
+          return c.text("Event is not found.", 400);
         }
       } catch (e) {
         console.log(e);
@@ -204,10 +151,11 @@ const eventRoute = app
       }
     }
   )
+  //eventを投稿
   .post(
     "/event",
     validator("json", (value, c) => {
-      const parsed = eventSchema.safeParse(value);
+      const parsed = defaultEventSchema.safeParse(value);
       if (!parsed.success) {
         return c.text("Invalid Schema.", 400);
       }
@@ -218,27 +166,9 @@ const eventRoute = app
       const json = c.req.valid("json");
 
       try {
-        const crypto = new Crypto(calculateHash);
-        const verify = await crypto.verifySecureMessage(json);
-
-        if (verify) {
-          const document: documentType = {
-            _id: json.id,
-            event: json.event,
-            publickey: json.publickey,
-            timestamp: json.timestamp,
-          };
-
-          const parsed = documentSchema.safeParse(document);
-
-          if (parsed.success) {
-            await writeDocument(parsed.data);
-          }
-
-          const db = getDB(json.publickey);
-          await db.insert(events).values(json);
-
-          return c.json(json);
+        const data = await putEvent(json);
+        if (data) {
+          return c.json(data);
         } else {
           return c.text("Verify failed.", 400);
         }
@@ -248,13 +178,12 @@ const eventRoute = app
       }
     }
   );
-
 export type eventRouteType = typeof eventRoute;
 
+//profileの取得
 const profileQuerySchema = z.object({
   publickey: z.string(),
 });
-
 app.use("/profile", cors());
 const profileRoute = app
   .get(
@@ -271,21 +200,21 @@ const profileRoute = app
       const { publickey } = c.req.valid("query");
 
       try {
-        const doc = await getProfileDoc(publickey);
-        const crypto = new Crypto(calculateHash);
-        const verify = await crypto.verifyUserDoc(doc);
+        //orbitdbからprofileの更新eventを探す
+        const doc = await findProfileDoc(publickey);
 
-        if (verify) {
+        if (doc) {
           return c.json(doc);
         } else {
-          return c.text("Verify failed.", 400);
+          return c.text("User is not found.", 400);
         }
       } catch (e) {
         console.log(e);
-        return c.text("Fetch failed.", 500);
+        return c.text("An error has occurred.", 500);
       }
     }
   )
+  //profileの更新
   .post(
     "/profile",
     validator("json", (value, c) => {
@@ -301,16 +230,17 @@ const profileRoute = app
 
       try {
         const doc = await updateUser(json);
-
-        if (doc) return c.json(doc);
-        else return c.text("Verify failed");
+        if (doc) {
+          return c.json(doc);
+        } else {
+          return c.text("Verify failed.", 400);
+        }
       } catch (e) {
         console.log(e);
-        return c.text("Update failed.", 500);
+        return c.text("An error has occurred.", 500);
       }
     }
   );
-
 export type profileRouteType = typeof profileRoute;
 
 serve({

@@ -26,6 +26,9 @@ export const documentSchema = z.object({
 });
 
 export type documentType = z.infer<typeof documentSchema>;
+export type rawDocument = {
+  value: documentType;
+};
 
 const blockstore = new FsBlockstore("./orbitdb/store");
 const datastore = new LevelDatastore("./orbitdb/store");

@@ -1,6 +1,6 @@
 import { Crypto } from "../../../../utils/crypto.ts";
 import { calculateHash } from "../../hash.ts";
-import { type documentType } from "../db.ts";
+import { documentSchema, type documentType } from "../db.ts";
 import { searchDocument, writeDocument } from "../events/index.ts";
 import { getHelia, type profileType } from "../helia.ts";
 import { json } from "@helia/json";
@@ -23,8 +23,10 @@ export const updateUser = async (data: profileType) => {
       timestamp: new Date().toISOString(),
     };
 
-    await writeDocument(document);
-    await helia.routing.provide(cid);
+    const parsed = documentSchema.safeParse(document);
+    if (parsed.success) {
+      await writeDocument(document);
+    }
 
     return document;
   } else {
@@ -32,20 +34,30 @@ export const updateUser = async (data: profileType) => {
   }
 };
 
-export const getProfileDoc = async (publickey: string) => {
-  const helia = await getHelia();
-  const j = json(helia);
-
+//orbitdbからプロフィール更新イベントを探す
+export const findProfileDoc = async (publickey: string) => {
   const data = await searchDocument({ publickey, event: "event.profile" });
 
-  const record: documentType = data[0].value;
-  const cid = record._id;
+  if (data[0]) {
+    const doc = await resolveProfileDoc(data[0].value._id);
+
+    return doc;
+  }
+};
+
+//cidからdocumentを解決
+export const resolveProfileDoc = async (cid: string) => {
+  const helia = await getHelia();
+  const j = json(helia);
 
   const doc: profileType = await j.get(CID.parse(cid));
 
   const crypto = new Crypto(calculateHash);
   const verify = await crypto.verifyUserDoc(doc);
 
-  if (verify) return doc;
-  else return null;
+  if (verify) {
+    return doc;
+  } else {
+    return null;
+  }
 };
