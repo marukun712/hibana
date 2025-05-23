@@ -17,6 +17,7 @@
     "@hono/node-server": "^1.14.1",
     "@libsql/client": "^0.15.6",
     "@orbitdb/core": "^2.5.0",
+    "@orbitdb/voyager": "^0.0.3",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^11.10.0",
     "blockstore-fs": "^2.0.2",
@@ -26,6 +27,7 @@
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.1",
     "helia": "^5.4.1",
-    "hono": "^4.7.9"
+    "hono": "^4.7.9",
+    "kubo-rpc-client": "^5.1.0"
   }
 }

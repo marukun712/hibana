@@ -14,7 +14,7 @@ let db: any;
 const address = "/orbitdb/zdpuAukSpmTeWB4MM7EW6wwvVRjSeuMkKNCTycyWpcLukfw9r";
 
 const options = libp2pDefaults();
-options.addresses!.listen = [`/ip4/${process.env.GLOBAL_IP}/tcp/4001`];
+options.addresses!.listen = [`/ip4/${process.env.GLOBAL_IP}/tcp/4002`];
 options.services.pubsub = gossipsub({ allowPublishToZeroTopicPeers: true });
 options.services.identify = identify();
 

@@ -12,7 +12,7 @@ import {
 } from "./lib/ipfs/events/index.ts";
 import { serve } from "@hono/node-server";
 import { findProfileDoc, updateUser } from "./lib/ipfs/user/index.ts";
-import { profileSchema } from "./lib/ipfs/helia.ts";
+import { profileSchema } from "./lib/ipfs/ipfs.ts";
 import { getRecord } from "./db/index.ts";
 import { createFeed } from "./lib/ipfs/feed/index.ts";
 

@@ -1,6 +1,6 @@
 import * as secp256k1 from "@noble/secp256k1";
 import type { defaultEvent } from "../backend/db/schema.ts";
-import type { profileType } from "../backend/lib/ipfs/helia.ts";
+import type { profileType } from "../backend/lib/ipfs/ipfs.ts";
 
 export class Crypto {
   private calculateHash: (content: string) => Promise<Uint8Array>;

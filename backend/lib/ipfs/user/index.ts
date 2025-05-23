@@ -2,22 +2,19 @@ import { Crypto } from "../../../../utils/crypto.ts";
 import { calculateHash } from "../../hash.ts";
 import { documentSchema, type documentType } from "../db.ts";
 import { searchDocument, writeDocument } from "../events/index.ts";
-import { getHelia, type profileType } from "../helia.ts";
-import { json } from "@helia/json";
-import { CID } from "multiformats/cid";
+import { getClient, type profileType } from "../ipfs.ts";
+import { CID } from "kubo-rpc-client";
 
 export const updateUser = async (data: profileType) => {
   const crypto = new Crypto(calculateHash);
   const verify = await crypto.verifyUserDoc(data);
 
   if (verify) {
-    const helia = await getHelia();
-    const j = json(helia);
-
-    const cid = await j.add(data);
+    const client = await getClient();
+    const result = await client.add(JSON.stringify(data, null, 2));
 
     const document: documentType = {
-      _id: cid.toString(),
+      _id: result.cid.toString(),
       event: "event.profile",
       publickey: data.publickey,
       timestamp: new Date().toISOString(),
@@ -47,10 +44,15 @@ export const findProfileDoc = async (publickey: string) => {
 
 //cidからdocumentを解決
 export const resolveProfileDoc = async (cid: string) => {
-  const helia = await getHelia();
-  const j = json(helia);
+  const client = await getClient();
 
-  const doc: profileType = await j.get(CID.parse(cid));
+  const raw = await client.cat(CID.parse(cid));
+  const chunks = [];
+  for await (const chunk of raw) {
+    chunks.push(chunk);
+  }
+  const buffer = Buffer.concat(chunks).toString("utf-8");
+  const doc = JSON.parse(buffer);
 
   const crypto = new Crypto(calculateHash);
   const verify = await crypto.verifyUserDoc(doc);
