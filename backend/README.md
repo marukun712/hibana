@@ -1,15 +1,21 @@
-# backend
+# Server
 
-To install dependencies:
+# Setup
 
-```bash
-bun install
+ipfs をマシンにインストールします。
+
+https://ipfs-book.decentralized-web.jp/install_ipfs/
+
+ipfs を初期化します。
+
+```
+ipfs init
 ```
 
-To run:
+ipfs と orbitdb が通信するため、ポート`4001`と`4002`をを開放してください。
 
-```bash
-bun run index.ts
+サーバーを起動します。自動的にサーバーに DB が replicate されます。
+
 ```
-
-This project was created using `bun init` in bun v1.2.12. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+node index.ts
+```
