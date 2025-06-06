@@ -6,18 +6,19 @@ import { searchDocument, writeDocument } from "../events/index.ts";
 import { getClient } from "../instances/ipfs.ts";
 import { CID } from "kubo-rpc-client";
 
-export const updateUser = async (data: profileType) => {
+export const updateUser = async (profile: profileType) => {
   const crypto = new Crypto(calculateHash);
-  const verify = await crypto.verifyUserDoc(data);
+  const verify = await crypto.verifyUserDoc(profile);
 
   if (verify) {
     const client = await getClient();
-    const result = await client.add(JSON.stringify(data, null, 2));
+    const result = await client.add(JSON.stringify(profile, null, 2));
 
     const document: documentType = {
       _id: result.cid.toString(),
       event: "event.profile",
-      publickey: data.publickey,
+      target: null,
+      publickey: profile.publickey,
       timestamp: new Date().toISOString(),
     };
 

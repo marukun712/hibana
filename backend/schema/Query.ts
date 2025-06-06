@@ -10,6 +10,7 @@ export type getSchemaType = z.infer<typeof getSchema>;
 export const feedSchema = z.object({
   publickey: z.string().optional(),
   event: z.string().optional(),
+  target: z.string().optional(),
 });
 
 export const eventQuerySchema = z.object({

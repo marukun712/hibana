@@ -1,6 +1,8 @@
-import { profileType } from "../../../backend/lib/ipfs/helia";
+import { profileType } from "../../../backend/schema/Profile";
+import StarButton from "../star/starButton";
 
 export default function Post(props: {
+  id: string;
   text: string;
   postedAt: string;
   user: profileType;
@@ -23,6 +25,9 @@ export default function Post(props: {
         </div>
 
         <p class="text-base">{props.text}</p>
+      </div>
+      <div class="card-footer">
+        <StarButton target={props.id} />
       </div>
     </div>
   );

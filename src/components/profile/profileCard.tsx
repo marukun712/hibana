@@ -1,9 +1,9 @@
 import { createSignal, onMount } from "solid-js";
-import { profileType } from "../../../backend/lib/ipfs/helia";
-import { getProfile } from "~/lib/api/users";
 import { useSearchParams } from "@solidjs/router";
 import Feed from "../post/feed";
 import Loading from "../ui/loading";
+import { profileType } from "../../../backend/schema/Profile";
+import { getProfile } from "~/lib/api/users";
 
 export default function ProfileCard() {
   const [user, setUser] = createSignal<profileType>();

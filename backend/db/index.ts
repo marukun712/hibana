@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
-import type { getSchemaType } from "..";
 import { getDB } from "./db.ts";
-import { events, type defaultEvent } from "./schema.ts";
 import { Crypto } from "../../utils/crypto.ts";
 import { calculateHash } from "../lib/hash.ts";
+import type { getSchemaType } from "../schema/Query.ts";
+import { events, type eventType } from "../schema/Event.ts";
 
 export const getRecord = async (json: getSchemaType) => {
   //DBファイルをopen
@@ -15,7 +15,7 @@ export const getRecord = async (json: getSchemaType) => {
   if (post) {
     //データを検証
     const crypto = new Crypto(calculateHash);
-    const verify = await crypto.verifySecureMessage(post as defaultEvent);
+    const verify = await crypto.verifySecureMessage(post as eventType);
 
     if (verify) {
       return post;
@@ -27,4 +27,7 @@ export const getRecord = async (json: getSchemaType) => {
   }
 };
 
-export const putRecord = async (data: defaultEvent) => {};
+export const putRecord = async (json: eventType) => {
+  const db = getDB(json.publickey);
+  await db.insert(events).values(json);
+};

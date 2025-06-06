@@ -3,8 +3,8 @@ import { validator } from "hono/validator";
 import { cors } from "hono/cors";
 import {
   getAllDocument,
+  getEvent,
   putEvent,
-  resolveRepositoryDocument,
   searchDocument,
 } from "./lib/events/index.ts";
 import { serve } from "@hono/node-server";
@@ -17,7 +17,6 @@ import {
   getSchema,
   profileQuerySchema,
 } from "./schema/Query.ts";
-import type { documentType } from "./schema/Document.ts";
 import { profileSchema } from "./schema/Profile.ts";
 import { EventSchema } from "./schema/Event.ts";
 
@@ -69,7 +68,7 @@ const feedRoute = app.get(
   }),
   async (c) => {
     //publickey(投稿者)、eventで絞り込み
-    const { publickey, event } = c.req.valid("query");
+    const { publickey, event, target } = c.req.valid("query");
 
     //クエリを構築
     const query: Record<string, string> = {};
@@ -79,16 +78,19 @@ const feedRoute = app.get(
     if (event) {
       query.event = event;
     }
+    if (target) {
+      query.target = target;
+    }
 
     try {
-      const posts =
+      const documents =
         publickey || event
           ? await searchDocument(query)
           : await getAllDocument();
 
       //eventをfeedにして返す
-      if (posts) {
-        const feed = await createFeed(posts);
+      if (documents) {
+        const feed = await createFeed(documents);
 
         return c.json(feed);
       } else {
@@ -120,19 +122,10 @@ const eventRoute = app
 
       //eventを検索
       try {
-        const data = await searchDocument({ _id: id });
+        const record = await getEvent(id);
 
-        if (data[0]) {
-          const event: documentType = data[0].value;
-
-          //eventを解決
-          const record = await resolveRepositoryDocument(event);
-
-          if (record) {
-            return c.json(record);
-          } else {
-            return c.text("Event is not found.", 400);
-          }
+        if (record) {
+          return c.json(record);
         } else {
           return c.text("Event is not found.", 400);
         }

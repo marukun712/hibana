@@ -1,6 +1,6 @@
 import * as secp256k1 from "@noble/secp256k1";
-import type { defaultEvent } from "../backend/db/schema.ts";
-import { profileType } from "../backend/schema/Profile.js";
+import type { profileType } from "../backend/schema/Profile.ts";
+import type { eventType } from "../backend/schema/Event.ts";
 
 export class Crypto {
   private calculateHash: (content: string) => Promise<Uint8Array>;
@@ -48,7 +48,7 @@ export class Crypto {
     timestamp: string,
     message: Record<string, any>,
     privateKey: string
-  ): Promise<defaultEvent> {
+  ): Promise<eventType> {
     const json = JSON.stringify({ event, timestamp, message });
     const messageHash = await this.calculateHash(json);
     const signature = await this.signMessage(json, privateKey);
@@ -66,7 +66,7 @@ export class Crypto {
     };
   }
 
-  async verifySecureMessage(data: defaultEvent): Promise<boolean> {
+  async verifySecureMessage(data: eventType): Promise<boolean> {
     const { id, publickey, signature, event, timestamp, message } = data;
     const content = JSON.stringify({ event, timestamp, message });
 
