@@ -10,7 +10,6 @@ import {
   IPFSBlockStorage,
   Documents,
 } from "@orbitdb/core";
-import { z } from "zod";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -26,18 +25,6 @@ process.env.GLOBAL_IP
   : null;
 options.services.pubsub = gossipsub({ allowPublishToZeroTopicPeers: true });
 options.services.identify = identify();
-
-export const documentSchema = z.object({
-  _id: z.string(),
-  event: z.string(),
-  publickey: z.string(),
-  timestamp: z.string(),
-});
-
-export type documentType = z.infer<typeof documentSchema>;
-export type rawDocument = {
-  value: documentType;
-};
 
 const blockstore = new LevelBlockstore("./helia/blocks");
 const datastore = new LevelDatastore("./orbitdb/store");

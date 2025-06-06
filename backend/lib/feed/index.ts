@@ -1,4 +1,4 @@
-import type { rawDocument } from "../db.ts";
+import type { rawDocument } from "../../schema/Document.ts";
 import { resolveRepositoryDocument } from "../events/index.ts";
 
 export const createFeed = async (posts: rawDocument[]) => {

@@ -1,29 +1,29 @@
 import { Hono } from "hono";
 import { validator } from "hono/validator";
-import { defaultEventSchema } from "./db/schema.ts";
 import { cors } from "hono/cors";
-import { z } from "zod";
-import { type documentType } from "./lib/ipfs/db.ts";
 import {
   getAllDocument,
   putEvent,
   resolveRepositoryDocument,
   searchDocument,
-} from "./lib/ipfs/events/index.ts";
+} from "./lib/events/index.ts";
 import { serve } from "@hono/node-server";
-import { findProfileDoc, updateUser } from "./lib/ipfs/user/index.ts";
-import { profileSchema } from "./lib/ipfs/ipfs.ts";
+import { findProfileDoc, updateUser } from "./lib/user/index.ts";
 import { getRecord } from "./db/index.ts";
-import { createFeed } from "./lib/ipfs/feed/index.ts";
+import { createFeed } from "./lib/feed/index.ts";
+import {
+  eventQuerySchema,
+  feedSchema,
+  getSchema,
+  profileQuerySchema,
+} from "./schema/Query.ts";
+import type { documentType } from "./schema/Document.ts";
+import { profileSchema } from "./schema/Profile.ts";
+import { EventSchema } from "./schema/Event.ts";
 
 const app = new Hono();
 
 // リレーからの要求に対してリポジトリのレコードを返す
-const getSchema = z.object({
-  publickey: z.string(),
-  id: z.string(),
-});
-export type getSchemaType = z.infer<typeof getSchema>;
 app.use("/get", cors());
 const getPostRoute = app.get(
   "/get",
@@ -56,10 +56,6 @@ const getPostRoute = app.get(
 export type getRouteType = typeof getPostRoute;
 
 // イベントをfeedとして返す
-const feedSchema = z.object({
-  publickey: z.string().optional(),
-  event: z.string().optional(),
-});
 app.use("/feed", cors());
 const feedRoute = app.get(
   "/feed",
@@ -85,8 +81,6 @@ const feedRoute = app.get(
     }
 
     try {
-      console.log(await getAllDocument());
-
       const posts =
         publickey || event
           ? await searchDocument(query)
@@ -109,9 +103,6 @@ const feedRoute = app.get(
 export type feedRouteType = typeof feedRoute;
 
 //特定のeventを返す
-const eventQuerySchema = z.object({
-  id: z.string(),
-});
 app.use("/event", cors());
 const eventRoute = app
   .get(
@@ -155,7 +146,7 @@ const eventRoute = app
   .post(
     "/event",
     validator("json", (value, c) => {
-      const parsed = defaultEventSchema.safeParse(value);
+      const parsed = EventSchema.safeParse(value);
       if (!parsed.success) {
         return c.text("Invalid Schema.", 400);
       }
@@ -181,9 +172,6 @@ const eventRoute = app
 export type eventRouteType = typeof eventRoute;
 
 //profileの取得
-const profileQuerySchema = z.object({
-  publickey: z.string(),
-});
 app.use("/profile", cors());
 const profileRoute = app
   .get(

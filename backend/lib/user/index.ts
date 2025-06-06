@@ -1,8 +1,9 @@
-import { Crypto } from "../../../../utils/crypto.ts";
-import { calculateHash } from "../../hash.ts";
-import { documentSchema, type documentType } from "../db.ts";
+import { Crypto } from "../../../utils/crypto.ts";
+import { documentSchema, type documentType } from "../../schema/Document.ts";
+import type { profileType } from "../../schema/Profile.ts";
+import { calculateHash } from "../hash.ts";
 import { searchDocument, writeDocument } from "../events/index.ts";
-import { getClient, type profileType } from "../ipfs.ts";
+import { getClient } from "../instances/ipfs.ts";
 import { CID } from "kubo-rpc-client";
 
 export const updateUser = async (data: profileType) => {

@@ -1,16 +1,16 @@
 import { hc } from "hono/client";
-import { events, type defaultEvent } from "../../../db/schema.ts";
-import type { getRouteType } from "../../../index.ts";
+import type { getRouteType } from "../../index.ts";
+import { getDB } from "../instances/db.ts";
+import { findProfileDoc } from "../user/index.ts";
+import { Crypto } from "../../../utils/crypto.ts";
+import { calculateHash } from "../hash.ts";
+import { getDB as getRepo } from "../../db/db.ts";
 import {
   documentSchema,
-  getDB,
   type documentType,
   type rawDocument,
-} from "../db.ts";
-import { findProfileDoc } from "../user/index.ts";
-import { Crypto } from "../../../../utils/crypto.ts";
-import { calculateHash } from "../../hash.ts";
-import { getDB as getRepo } from "../../../db/db.ts";
+} from "../../schema/Document.ts";
+import { events, type eventType } from "../../schema/Event.ts";
 
 export const writeDocument = async (document: documentType) => {
   const db = await getDB();
@@ -57,7 +57,7 @@ export const resolveRepositoryDocument = async (event: documentType) => {
   });
 
   if (data.status == 200) {
-    const json = (await data.json()) as defaultEvent;
+    const json = (await data.json()) as eventType;
 
     //データの検証
     const crypto = new Crypto(calculateHash);
@@ -73,7 +73,7 @@ export const resolveRepositoryDocument = async (event: documentType) => {
   }
 };
 
-export const putEvent = async (json: defaultEvent) => {
+export const putEvent = async (json: eventType) => {
   //データの検証
   const crypto = new Crypto(calculateHash);
   const verify = await crypto.verifySecureMessage(json);
