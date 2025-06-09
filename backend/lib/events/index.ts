@@ -85,9 +85,11 @@ export const getEvent = async (id: string) => {
     if (record) {
       if (event.target) {
         const targetDoc = await searchDocument({ _id: event.target });
-        if (!targetDoc) return null;
+        if (!targetDoc[0]) return null;
 
-        const targetRecord = await resolveRepositoryDocument(event);
+        const targetRecord = await resolveRepositoryDocument(
+          targetDoc[0].value
+        );
         if (!targetRecord) return null;
 
         return { ...record, target: targetRecord };

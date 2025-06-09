@@ -67,7 +67,6 @@ const feedRoute = app.get(
     return parsed.data;
   }),
   async (c) => {
-    //publickey(投稿者)、eventで絞り込み
     const { publickey, event, target } = c.req.valid("query");
 
     //クエリを構築
