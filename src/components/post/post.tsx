@@ -1,5 +1,5 @@
 import { profileType } from "../../../backend/schema/Profile";
-import StarButton from "../star/starButton";
+import PinButton from "../buttons/pinButton";
 
 export default function Post(props: {
   id: string;
@@ -27,7 +27,7 @@ export default function Post(props: {
         <p class="text-base">{props.text}</p>
       </div>
       <div class="card-footer">
-        <StarButton target={props.id} />
+        <PinButton target={props.id} />
       </div>
     </div>
   );

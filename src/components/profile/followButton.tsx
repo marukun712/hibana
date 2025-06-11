@@ -1,12 +1,11 @@
-import { StarIcon } from "lucide-solid";
 import { createSignal } from "solid-js";
 import { postEvent } from "~/lib/api/event";
 
-export default function StarButton(props: { target: string }) {
+export default function FollowButton(props: { target: string }) {
   const [privateKey, setPrivateKey] = createSignal("");
 
   async function post() {
-    await postEvent("event.star", { target: props.target }, privateKey());
+    await postEvent("event.follow", { target: props.target }, privateKey());
 
     setPrivateKey("");
   }
@@ -28,7 +27,7 @@ export default function StarButton(props: { target: string }) {
       />
 
       <button class="btn btn-primary" type="submit">
-        Star
+        Follow
       </button>
     </form>
   );

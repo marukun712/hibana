@@ -2,7 +2,7 @@ import { hc } from "hono/client";
 import type { getRouteType } from "../../index.ts";
 import { getDB } from "../instances/db.ts";
 import { findProfileDoc } from "../user/index.ts";
-import { Crypto } from "../../../utils/crypto.ts";
+import { Crypto, isValidPublickey } from "../../../utils/crypto.ts";
 import { calculateHash } from "../hash.ts";
 import {
   documentSchema,
@@ -84,16 +84,28 @@ export const getEvent = async (id: string) => {
 
     if (record) {
       if (event.target) {
-        const targetDoc = await searchDocument({ _id: event.target });
-        if (!targetDoc[0]) return null;
+        let targetDoc;
 
-        const targetRecord = await resolveRepositoryDocument(
-          targetDoc[0].value
-        );
-        if (!targetRecord) return null;
+        //targetが有効な公開鍵(ユーザーを指していた)場合
+        if (isValidPublickey(event.target)) {
+          //ユーザーをターゲットとする
+          targetDoc = await findProfileDoc(event.target);
 
-        return { ...record, target: targetRecord };
+          return { ...record, target: targetDoc };
+        } else {
+          //ターゲットがドキュメントを指していた場合
+          const doc = await searchDocument({ _id: event.target });
+          if (!doc[0]) return null;
+          targetDoc = doc[0].value;
+
+          //ドキュメントが指しているレコードをターゲットとする
+          const targetRecord = await resolveRepositoryDocument(targetDoc);
+          if (!targetRecord) return null;
+
+          return { ...record, target: targetRecord };
+        }
       } else {
+        //targetがなければそのまま返す
         return { ...record, target: null };
       }
     } else {
@@ -109,7 +121,7 @@ export const putEvent = async (event: eventType) => {
 
   const message = event.message as Record<string, any>;
 
-  //target付きのイベント(starやfollowなど)か判定
+  //target付きのイベント(pinやfollowなど)か判定
   const target = message.target ? message.target : null;
 
   if (verify) {

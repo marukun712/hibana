@@ -148,3 +148,12 @@ export class Crypto {
     return await this.verifySignature(publickey, signature, content);
   }
 }
+
+export const isValidPublickey = (hex: string) => {
+  try {
+    secp256k1.ProjectivePoint.fromHex(hex);
+    return true;
+  } catch {
+    return false;
+  }
+};

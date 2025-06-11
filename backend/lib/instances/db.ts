@@ -40,7 +40,7 @@ export const getDB = async () => {
   const storage = await IPFSBlockStorage({ ipfs, pin: true });
   const orbitdb = await createOrbitDB({ ipfs });
 
-  db = await orbitdb.open(address, {
+  db = await orbitdb.open("sns-db", {
     Database: Documents({ storage, indexBy: "_id" }),
     type: "documents",
     AccessController: IPFSAccessController({ write: ["*"] }),
@@ -51,10 +51,6 @@ export const getDB = async () => {
 
   db.events.on("join", async (peerId: string) => {
     console.log(peerId);
-  });
-
-  db.events.on("update", async (entry: string) => {
-    console.log(entry);
   });
 
   return db;

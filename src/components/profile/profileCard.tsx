@@ -4,6 +4,7 @@ import Feed from "../post/feed";
 import Loading from "../ui/loading";
 import { profileType } from "../../../backend/schema/Profile";
 import { getProfile } from "~/lib/api/users";
+import FollowButton from "./followButton";
 
 export default function ProfileCard() {
   const [user, setUser] = createSignal<profileType>();
@@ -29,6 +30,8 @@ export default function ProfileCard() {
                     <img src={user()!.icon} />
                   </div>
                 </div>
+                <FollowButton target={user()!.publickey} />
+
                 <div class="mt-4 space-y-4">
                   <h2 class="text-2xl font-bold">{user()!.username}</h2>
                   <h2 class="text-sm text-gray-500">{user()!.publickey}</h2>
