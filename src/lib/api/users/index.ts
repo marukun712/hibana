@@ -1,8 +1,12 @@
-import { profileRouteType } from "../../../../backend";
+import {
+  eventRouteType,
+  feedRouteType,
+  profileRouteType,
+} from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { Crypto } from "../../../../utils/crypto";
-const client = hc<profileRouteType>("http://localhost:8000");
+import { profileType } from "../../../../backend/schema/Profile";
 
 export const updateProfile = async (
   username: string,
@@ -11,6 +15,8 @@ export const updateProfile = async (
   repository: string,
   privateKey: string
 ) => {
+  const client = hc<profileRouteType>("http://localhost:8000");
+
   const updatedAt = new Date().toISOString();
 
   const crypto = new Crypto(calculateHash);
@@ -28,7 +34,45 @@ export const updateProfile = async (
 };
 
 export const getProfile = async (publickey: string) => {
+  const client = hc<profileRouteType>("http://localhost:8000");
+
   const res = await client.profile.$get({ query: { publickey } });
 
-  return res.json();
+  return (await res.json()) as profileType;
+};
+
+export const getFollows = async (publickey: string) => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({
+    query: { event: "event.follow", publickey },
+  });
+
+  return (await res.json()) as [];
+};
+
+export const getFollowers = async (publickey: string) => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({
+    query: { event: "event.follow", target: publickey },
+  });
+
+  return (await res.json()) as [];
+};
+
+export const isFollowed = async (publickey: string, target: string) => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({
+    query: { event: "event.follow", publickey, target },
+  });
+
+  const json = (await res.json()) as [];
+
+  if (json) {
+    return true;
+  } else {
+    return false;
+  }
 };

@@ -18,7 +18,7 @@ import {
   profileQuerySchema,
 } from "./schema/Query.ts";
 import { profileSchema } from "./schema/Profile.ts";
-import { EventSchema } from "./schema/Event.ts";
+import { EventSchema, type eventType } from "./schema/Event.ts";
 
 const app = new Hono();
 
@@ -89,7 +89,7 @@ const feedRoute = app.get(
 
       //eventをfeedにして返す
       if (documents) {
-        const feed = await createFeed(documents);
+        const feed: eventType[] = await createFeed(documents);
 
         return c.json(feed);
       } else {

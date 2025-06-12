@@ -2,18 +2,28 @@ import { createSignal, onMount } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import Feed from "../post/feed";
 import Loading from "../ui/loading";
-import { profileType } from "../../../backend/schema/Profile";
-import { getProfile } from "~/lib/api/users";
+import { getFollowers, getFollows, getProfile } from "~/lib/api/users";
 import FollowButton from "./followButton";
+import { profileType } from "../../../backend/schema/Profile";
+
+type ProfileType = profileType & { followCount: number; followerCount: number };
 
 export default function ProfileCard() {
-  const [user, setUser] = createSignal<profileType>();
+  const [user, setUser] = createSignal<ProfileType>();
   const [searchParams] = useSearchParams();
 
   onMount(async () => {
     const publickey = searchParams.publickey as string;
     const data = await getProfile(publickey);
-    setUser(data);
+
+    const follows = await getFollows(publickey);
+    const followers = await getFollowers(publickey);
+
+    setUser({
+      ...data,
+      followCount: follows.length,
+      followerCount: followers.length,
+    });
   });
 
   return (
@@ -36,6 +46,11 @@ export default function ProfileCard() {
                   <h2 class="text-2xl font-bold">{user()!.username}</h2>
                   <h2 class="text-sm text-gray-500">{user()!.publickey}</h2>
                   <p class="text-sm">{user()!.description}</p>
+
+                  <div class="flex space-x-4 justify-center font-bold">
+                    <h2>{user()!.followCount} フォロー中</h2>
+                    <h2>{user()!.followerCount} フォロワー</h2>
+                  </div>
                 </div>
               </div>
             </div>

@@ -12,5 +12,5 @@ export const createFeed = async (docs: rawDocument[]) => {
     })
   );
 
-  return feed.filter((doc) => doc !== null);
+  return feed.filter((doc) => doc !== null && doc !== undefined);
 };
