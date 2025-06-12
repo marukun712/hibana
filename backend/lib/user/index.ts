@@ -15,9 +15,9 @@ export const updateUser = async (profile: profileType) => {
     const result = await client.add(JSON.stringify(profile, null, 2));
 
     const document: documentType = {
-      _id: result.cid.toString(),
+      _id: profile.id,
       event: "event.profile",
-      target: null,
+      target: result.cid.toString(),
       publickey: profile.publickey,
       timestamp: new Date().toISOString(),
     };
@@ -37,15 +37,15 @@ export const updateUser = async (profile: profileType) => {
 export const findProfileDoc = async (publickey: string) => {
   const data = await searchDocument({ publickey, event: "event.profile" });
 
-  if (data[0]) {
-    const doc = await resolveProfileDoc(data[0].value._id);
+  if (data[0] && data[0].value.target) {
+    const doc = await resolveIpfsDoc(data[0].value.target);
 
     return doc;
   }
 };
 
-//cidからdocumentを解決
-export const resolveProfileDoc = async (cid: string) => {
+//ipfs上の署名済みjsonドキュメントを解決する
+export const resolveIpfsDoc = async (cid: string) => {
   const client = await getClient();
 
   const raw = await client.cat(CID.parse(cid));

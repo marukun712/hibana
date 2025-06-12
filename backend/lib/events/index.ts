@@ -1,7 +1,7 @@
 import { hc } from "hono/client";
 import type { getRouteType } from "../../index.ts";
 import { getDB } from "../instances/db.ts";
-import { findProfileDoc } from "../user/index.ts";
+import { findProfileDoc, resolveIpfsDoc } from "../user/index.ts";
 import { Crypto, isValidPublickey } from "../../../utils/crypto.ts";
 import { calculateHash } from "../hash.ts";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../../schema/Document.ts";
 import { type eventType } from "../../schema/Event.ts";
 import { putRecord } from "../../db/index.ts";
+import { isCID } from "../../../utils/cid.ts";
 
 export const writeDocument = async (document: documentType) => {
   const db = await getDB();
@@ -84,19 +85,21 @@ export const getEvent = async (id: string) => {
 
     if (record) {
       if (event.target) {
-        let targetDoc;
-
         //targetが有効な公開鍵(ユーザーを指していた)場合
         if (isValidPublickey(event.target)) {
           //ユーザーをターゲットとする
-          targetDoc = await findProfileDoc(event.target);
+          const targetDoc = await findProfileDoc(event.target);
+
+          return { ...record, target: targetDoc };
+        } else if (isCID(event.target)) {
+          const targetDoc = await resolveIpfsDoc(event.target);
 
           return { ...record, target: targetDoc };
         } else {
-          //ターゲットがドキュメントを指していた場合
+          //ターゲットがipfs上のファイルを指していた場合
           const doc = await searchDocument({ _id: event.target });
           if (!doc[0]) return null;
-          targetDoc = doc[0].value;
+          const targetDoc = doc[0].value;
 
           //ドキュメントが指しているレコードをターゲットとする
           const targetRecord = await resolveRepositoryDocument(targetDoc);
