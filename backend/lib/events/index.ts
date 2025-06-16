@@ -5,34 +5,56 @@ import { findProfileDoc, resolveIpfsDoc } from "../user/index.ts";
 import { Crypto, isValidPublickey } from "../../../utils/crypto.ts";
 import { calculateHash } from "../hash.ts";
 import {
+  allDataSchema,
   documentSchema,
+  searchResult,
   type documentType,
-  type rawDocument,
 } from "../../schema/Document.ts";
-import { type eventType } from "../../schema/Event.ts";
+import { type eventType, EventSchema } from "../../schema/Event.ts";
 import { putRecord } from "../../db/index.ts";
 import { isCID } from "../../../utils/cid.ts";
 
 export const writeDocument = async (document: documentType) => {
+  const parsed = documentSchema.safeParse(document);
+
+  if (!parsed.success) {
+    console.error("Document schema validation failed:", parsed.error);
+    return;
+  }
+
   const db = await getDB();
   await db.put(document);
 };
 
-export const getAllDocument = async (): Promise<rawDocument[]> => {
+export const getAllDocument = async () => {
   const db = await getDB();
-  return db.all();
+  const data = db.all();
+
+  const parsed = allDataSchema.safeParse(data);
+
+  if (!parsed.success) {
+    console.error("Search result schema validation failed:", parsed.error);
+    return [];
+  }
+
+  return parsed.data;
 };
 
-export const searchDocument = async (query: {
-  [key: string]: string;
-}): Promise<rawDocument[]> => {
+export const searchDocument = async (query: { [key: string]: string }) => {
   const db = await getDB();
 
   const result = await db.query((doc: any) =>
     Object.entries(query).every(([key, value]) => doc[key] === value)
   );
 
-  const data = result.map((doc: any) => {
+  const parsed = searchResult.safeParse(result);
+
+  if (!parsed.success) {
+    console.error("Search result schema validation failed:", parsed.error);
+    return [];
+  }
+
+  const data = parsed.data.map((doc) => {
     return { value: doc };
   });
 
@@ -58,17 +80,25 @@ export const resolveRepositoryDocument = async (document: documentType) => {
   });
 
   if (data.status == 200) {
-    const json = (await data.json()) as eventType;
+    const json = await data.json();
+    const parsedEvent = EventSchema.safeParse(json);
+
+    if (!parsedEvent.success) {
+      console.error("Event schema validation failed:", parsedEvent.error);
+      return null;
+    }
+
+    const event = parsedEvent.data;
 
     //データの検証
     const crypto = new Crypto(calculateHash);
-    const verify = await crypto.verifySecureMessage(json);
+    const verify = await crypto.verifySecureMessage(event);
     if (!verify) {
       return null;
     }
 
     //投稿者のプロフィール付きで返す
-    return { ...json, user: doc };
+    return { ...event, user: doc };
   } else {
     return null;
   }
@@ -78,7 +108,7 @@ export const getEvent = async (id: string) => {
   const docs = await searchDocument({ _id: id });
 
   if (docs[0]) {
-    const event: documentType = docs[0].value;
+    const event = docs[0].value;
 
     //eventを解決
     const record = await resolveRepositoryDocument(event);
@@ -115,12 +145,20 @@ export const getEvent = async (id: string) => {
       return null;
     }
   }
+
+  return null;
 };
 
 export const putEvent = async (event: eventType) => {
   //データの検証
   const crypto = new Crypto(calculateHash);
   const verify = await crypto.verifySecureMessage(event);
+  const parsedEvent = EventSchema.safeParse(event);
+
+  if (!parsedEvent.success) {
+    console.error("Event schema validation failed:", parsedEvent.error);
+    return null;
+  }
 
   const message = event.message as Record<string, any>;
 

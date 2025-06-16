@@ -1,14 +1,21 @@
 import { Crypto } from "../../../utils/crypto.ts";
 import { documentSchema, type documentType } from "../../schema/Document.ts";
-import type { profileType } from "../../schema/Profile.ts";
+import { profileSchema, type profileType } from "../../schema/Profile.ts";
 import { calculateHash } from "../hash.ts";
 import { searchDocument, writeDocument } from "../events/index.ts";
 import { getClient } from "../instances/ipfs.ts";
 import { CID } from "kubo-rpc-client";
 
 export const updateUser = async (profile: profileType) => {
+  const parsedProfile = profileSchema.safeParse(profile);
+
+  if (!parsedProfile.success) {
+    console.error("Profile schema validation failed:", parsedProfile.error);
+    return null;
+  }
+
   const crypto = new Crypto(calculateHash);
-  const verify = await crypto.verifyUserDoc(profile);
+  const verify = await crypto.verifyUserDoc(parsedProfile.data);
 
   if (verify) {
     const client = await getClient();
@@ -34,18 +41,31 @@ export const updateUser = async (profile: profileType) => {
 };
 
 //orbitdbからプロフィール更新イベントを探す
-export const findProfileDoc = async (publickey: string) => {
+export const findProfileDoc = async (
+  publickey: string
+): Promise<profileType | null> => {
   const data = await searchDocument({ publickey, event: "event.profile" });
 
   if (data[0] && data[0].value.target) {
     const doc = await resolveIpfsDoc(data[0].value.target);
 
-    return doc;
+    const success = profileSchema.safeParse(doc);
+
+    if (success.success) {
+      return success.data;
+    } else {
+      console.error("Profile schema validation failed:", success.error);
+      return null;
+    }
+  } else {
+    return null;
   }
 };
 
 //ipfs上の署名済みjsonドキュメントを解決する
-export const resolveIpfsDoc = async (cid: string) => {
+export const resolveIpfsDoc = async (
+  cid: string
+): Promise<Record<string, any> | null> => {
   const client = await getClient();
 
   const raw = await client.cat(CID.parse(cid));

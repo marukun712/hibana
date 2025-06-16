@@ -1,8 +1,4 @@
-import {
-  eventRouteType,
-  feedRouteType,
-  profileRouteType,
-} from "../../../../backend";
+import { feedRouteType, profileRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { Crypto } from "../../../../utils/crypto";
@@ -38,7 +34,7 @@ export const getProfile = async (publickey: string) => {
 
   const res = await client.profile.$get({ query: { publickey } });
 
-  return (await res.json()) as profileType;
+  return await res.json();
 };
 
 export const getFollows = async (publickey: string) => {
@@ -48,7 +44,7 @@ export const getFollows = async (publickey: string) => {
     query: { event: "event.follow", publickey },
   });
 
-  return (await res.json()) as [];
+  return await res.json();
 };
 
 export const getFollowers = async (publickey: string) => {
@@ -58,7 +54,7 @@ export const getFollowers = async (publickey: string) => {
     query: { event: "event.follow", target: publickey },
   });
 
-  return (await res.json()) as [];
+  return await res.json();
 };
 
 export const isFollowed = async (publickey: string, target: string) => {
@@ -68,9 +64,9 @@ export const isFollowed = async (publickey: string, target: string) => {
     query: { event: "event.follow", publickey, target },
   });
 
-  const json = (await res.json()) as [];
+  const json = await res.json();
 
-  if (json) {
+  if (json.length > 0) {
     return true;
   } else {
     return false;

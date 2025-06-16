@@ -45,3 +45,19 @@ export const getUserPosts = async (publickey: string) => {
 
   return feed;
 };
+
+export const isPinned = async (publickey: string, target: string) => {
+  const client = hc<feedRouteType>("http://localhost:8000");
+
+  const res = await client.feed.$get({
+    query: { event: "event.pin", publickey, target },
+  });
+
+  const json = await res.json();
+
+  if (json.length > 0) {
+    return true;
+  } else {
+    return false;
+  }
+};

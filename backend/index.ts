@@ -89,7 +89,7 @@ const feedRoute = app.get(
 
       //eventをfeedにして返す
       if (documents) {
-        const feed: eventType[] = await createFeed(documents);
+        const feed = await createFeed(documents);
 
         return c.json(feed);
       } else {
