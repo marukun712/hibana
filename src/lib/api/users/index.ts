@@ -2,7 +2,6 @@ import { feedRouteType, profileRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { Crypto } from "../../../../utils/crypto";
-import { profileType } from "../../../../backend/schema/Profile";
 
 export const updateProfile = async (
   username: string,

@@ -28,7 +28,7 @@ export const writeDocument = async (document: documentType) => {
 
 export const getAllDocument = async () => {
   const db = await getDB();
-  const data = db.all();
+  const data = await db.all();
 
   const parsed = allDataSchema.safeParse(data);
 

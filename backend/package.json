@@ -16,6 +16,7 @@
     "@helia/json": "^4.0.5",
     "@hono/node-server": "^1.14.1",
     "@libsql/client": "^0.15.6",
+    "@noble/curves": "^1.9.2",
     "@orbitdb/core": "^2.5.0",
     "@orbitdb/voyager": "^0.0.3",
     "@types/better-sqlite3": "^7.6.13",

@@ -2,3 +2,23 @@
 @plugin "daisyui" {
   themes: all;
 }
+
+@theme {
+  --animate-scale-up-center: scale-up-center 0.4s
+    cubic-bezier(0.39, 0.575, 0.565, 1) both;
+
+  @keyframes scale-up-center {
+    0% {
+      transform: scale(0.5);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+@layer utilities {
+  .animate-scale-up-center {
+    animation: var(--animate-scale-up-center);
+  }
+}

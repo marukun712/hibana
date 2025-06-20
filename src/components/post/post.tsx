@@ -1,5 +1,5 @@
 import { profileType } from "../../../backend/schema/Profile";
-import PinButton from "../buttons/pinButton";
+import PinButton from "./pinButton";
 
 export default function Post(props: {
   id: string;

@@ -11,6 +11,7 @@
   ],
   "dependencies": {
     "@helia/json": "^4.0.5",
+    "@noble/curves": "^1.9.2",
     "@noble/secp256k1": "^2.2.3",
     "@orbitdb/core": "^2.5.0",
     "@solidjs/router": "^0.15.0",
