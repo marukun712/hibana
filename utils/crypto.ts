@@ -154,8 +154,8 @@ export class Crypto {
 
 export const isValidPublickey = (hex: string) => {
   try {
-    secp256k1.ProjectivePoint.fromHex(hex);
-    return true;
+    const x = BigInt("0x" + hex);
+    return schnorr.utils.lift_x(x) !== undefined;
   } catch {
     return false;
   }
