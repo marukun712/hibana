@@ -7,8 +7,7 @@ export const updateProfile = async (
   username: string,
   icon: string,
   description: string,
-  repository: string,
-  privateKey: string
+  repository: string
 ) => {
   const client = hc<profileRouteType>("http://localhost:8000");
 
@@ -21,11 +20,10 @@ export const updateProfile = async (
     icon,
     description,
     repository,
-    updatedAt,
-    privateKey
+    updatedAt
   );
 
-  await client.profile.$post({ json: doc });
+  if (doc) await client.profile.$post({ json: doc });
 };
 
 export const getProfile = async (publickey: string) => {

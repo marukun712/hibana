@@ -20,11 +20,10 @@ export class Crypto {
     };
   }
 
-  async signMessage(content: string, privateKey: string): Promise<string> {
+  async signMessage(content: string): Promise<string> {
     try {
       const messageHash = await this.calculateHash(content);
-      const signature = schnorr.sign(messageHash, privateKey);
-      return secp256k1.etc.bytesToHex(signature);
+      return window.nostr.signSchnorr(secp256k1.etc.bytesToHex(messageHash));
     } catch (error) {
       console.error("Signing error:", error);
       throw error;
@@ -49,15 +48,17 @@ export class Crypto {
   async createSecureMessage(
     event: string,
     timestamp: string,
-    message: Record<string, any>,
-    privateKey: string
-  ): Promise<eventType> {
+    message: Record<string, any>
+  ): Promise<eventType | null> {
+    const publickey = await window.nostr.getPublicKey();
+    if (!isValidPublickey(publickey) || !publickey) {
+      console.error("Invalid public key");
+      return null;
+    }
+
     const json = JSON.stringify({ event, timestamp, message });
     const messageHash = await this.calculateHash(json);
-    const signature = await this.signMessage(json, privateKey);
-    const publickey = secp256k1.etc.bytesToHex(
-      schnorr.getPublicKey(privateKey)
-    );
+    const signature = await this.signMessage(json);
 
     return {
       id: secp256k1.etc.bytesToHex(messageHash),
@@ -90,9 +91,8 @@ export class Crypto {
     icon: string,
     description: string,
     repository: string,
-    updatedAt: string,
-    privateKey: string
-  ): Promise<profileType> {
+    updatedAt: string
+  ): Promise<profileType | null> {
     const json = JSON.stringify({
       username,
       icon,
@@ -101,11 +101,14 @@ export class Crypto {
       updatedAt,
     });
 
+    const publickey = await window.nostr.getPublicKey();
+    if (!isValidPublickey(publickey) || !publickey) {
+      console.error("Invalid public key");
+      return null;
+    }
+
     const messageHash = await this.calculateHash(json);
-    const signature = await this.signMessage(json, privateKey);
-    const publickey = secp256k1.etc.bytesToHex(
-      schnorr.getPublicKey(privateKey)
-    );
+    const signature = await this.signMessage(json);
 
     return {
       id: secp256k1.etc.bytesToHex(messageHash),

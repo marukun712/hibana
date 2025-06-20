@@ -16,13 +16,7 @@ export default function SignupForm() {
   }
 
   async function update() {
-    await updateProfile(
-      username(),
-      icon(),
-      description(),
-      repository(),
-      privateKey()
-    );
+    await updateProfile(username(), icon(), description(), repository());
 
     setUsername("");
     setIcon("");

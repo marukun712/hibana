@@ -5,8 +5,7 @@ import { Crypto } from "../../../../utils/crypto";
 
 export const postEvent = async (
   event: string,
-  content: Record<string, any>,
-  privateKey: string
+  content: Record<string, any>
 ) => {
   const client = hc<eventRouteType>("http://localhost:8000");
 
@@ -14,14 +13,9 @@ export const postEvent = async (
 
   const crypto = new Crypto(calculateHash);
 
-  const message = await crypto.createSecureMessage(
-    event,
-    timestamp,
-    content,
-    privateKey
-  );
+  const message = await crypto.createSecureMessage(event, timestamp, content);
 
-  const res = await client.event.$post({ json: message });
+  if (message) await client.event.$post({ json: message });
 };
 
 export const getPosts = async () => {
