@@ -48,8 +48,18 @@ export default function ProfileCard() {
                   <p class="text-sm">{user()!.description}</p>
 
                   <div class="flex space-x-4 justify-center font-bold">
-                    <h2>{user()!.followCount} フォロー中</h2>
-                    <h2>{user()!.followerCount} フォロワー</h2>
+                    <a
+                      href={`/users?type=follow&publickey=${user()!.publickey}`}
+                    >
+                      <h2>{user()!.followCount} フォロー中</h2>
+                    </a>
+                    <a
+                      href={`/users?type=follower&publickey=${
+                        user()!.publickey
+                      }`}
+                    >
+                      <h2>{user()!.followerCount} フォロワー</h2>
+                    </a>
                   </div>
                 </div>
               </div>
