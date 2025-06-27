@@ -18,18 +18,18 @@ export default function PostForm() {
         e.preventDefault();
         post(text());
       }}
-      class="space-x-4 flex justify-center py-12"
+      class="gap-3 flex justify-center py-8"
     >
       <input
         type="text"
-        class="input input-neutral"
+        class="input input-bordered w-full max-w-md"
         placeholder="Message..."
         value={text()}
         onChange={(e) => setText(e.target.value)}
       />
 
       <button class="btn btn-primary" type="submit">
-        POST
+        投稿
       </button>
     </form>
   );

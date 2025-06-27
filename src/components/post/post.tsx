@@ -8,26 +8,32 @@ export default function Post(props: {
   user: profileType;
 }) {
   return (
-    <div class="card bg-base-100 shadow-xl border border-base-300">
-      <div class="card-body space-y-4">
-        <div class="flex items-center space-x-3">
-          <div class="avatar">
-            <div class="w-10 h-10 rounded-full">
-              <a href={`/user?publickey=${props.user.publickey}`}>
-                <img src={props.user.icon} alt="User avatar" />
-              </a>
-            </div>
-          </div>
-          <div>
-            <div class="font-bold">{props.user.username}</div>
-            <div class="text-sm opacity-50">{props.postedAt}</div>
+    <div class="bg-base-100 rounded-xl border border-base-300 p-4 mb-4 hover:shadow-md transition-all">
+      <div class="flex gap-3">
+        <div class="avatar">
+          <div class="w-12 h-12 rounded-full">
+            <a href={`/user?publickey=${props.user.publickey}`}>
+              <img src={props.user.icon} alt="User avatar" />
+            </a>
           </div>
         </div>
-
-        <p class="text-base">{props.text}</p>
-      </div>
-      <div class="card-footer">
-        <PinButton target={props.id} />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <a 
+              href={`/user?publickey=${props.user.publickey}`}
+              class="font-bold hover:underline"
+            >
+              {props.user.username}
+            </a>
+            <span class="text-sm text-base-content/60">
+              {props.postedAt}
+            </span>
+          </div>
+          <p class="text-base leading-relaxed mb-3">{props.text}</p>
+          <div class="flex items-center gap-6">
+            <PinButton target={props.id} />
+          </div>
+        </div>
       </div>
     </div>
   );
