@@ -9,7 +9,7 @@ export const updateProfile = async (
   description: string,
   repository: string
 ) => {
-  const client = hc<profileRouteType>("http://localhost:8000");
+  const client = hc<profileRouteType>("http://100.112.237.81:8000");
   const updatedAt = new Date().toISOString();
   const crypto = new CryptoUtils(calculateHash);
   const doc = await crypto.createUserDoc(
@@ -24,7 +24,7 @@ export const updateProfile = async (
 };
 
 export const getProfile = async (publickey: string) => {
-  const client = hc<profileRouteType>("http://localhost:8000");
+  const client = hc<profileRouteType>("http://100.112.237.81:8000");
   const res = await client.profile.$get({ query: { publickey } });
   const json = await res.json();
   if (!("error" in json)) {

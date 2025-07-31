@@ -1,11 +1,14 @@
 import { createSignal, onMount } from "solid-js";
+import { getCurrentUser } from "~/lib/api/users";
 
 export default function Backup() {
   const [publickey, setPublickey] = createSignal<string | null>(null);
+  const [repository, setRepository] = createSignal<string | null>(null);
 
   onMount(async () => {
-    const publickey = await window.nostr.getPublicKey();
-    setPublickey(publickey);
+    const user = await getCurrentUser();
+    setPublickey(user.publickey);
+    setRepository(user.repository);
   });
 
   return (
@@ -15,7 +18,7 @@ export default function Backup() {
         <p class="text-sm">
           ここからダウンロードしたリポジトリファイルは引っ越しに使用することができます。
         </p>
-        <a href={`http://localhost:8000/repository/${publickey()}.hibana`}>
+        <a href={`${repository}/repository/${publickey()}.hibana`}>
           <button class="btn bg-primary">ダウンロード</button>
         </a>
       </div>

@@ -1,6 +1,7 @@
 import { createSignal, onMount } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import { deleteEvent, isPinned, postEvent } from "~/lib/api/event";
+import { getCurrentUser } from "~/lib/api/users";
 
 export default function PinButton(props: { target: string }) {
   const [pinned, setPinned] = createSignal(false);
@@ -26,7 +27,8 @@ export default function PinButton(props: { target: string }) {
   const removeDebounced = debounce(remove, 300);
 
   onMount(async () => {
-    const publickey = await window.nostr.getPublicKey();
+    const user = await getCurrentUser();
+    const publickey = user.publickey;
     const result = await isPinned(publickey, props.target);
     if (result.isPinned) {
       setPinned(true);

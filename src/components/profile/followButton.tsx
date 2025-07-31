@@ -1,7 +1,7 @@
 import { createSignal, onMount } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import { postEvent, deleteEvent } from "~/lib/api/event";
-import { isFollowed } from "~/lib/api/users";
+import { getCurrentUser, isFollowed } from "~/lib/api/users";
 
 export default function FollowButton(props: { target: string }) {
   const [followed, setFollowed] = createSignal(false);
@@ -27,7 +27,8 @@ export default function FollowButton(props: { target: string }) {
   const removeDebounced = debounce(remove, 300);
 
   onMount(async () => {
-    const pubkey = await window.nostr.getPublicKey();
+    const user = await getCurrentUser();
+    const publickey = user.publickey;
     const result = await isFollowed(pubkey, props.target);
     if (result.isFollowed) {
       setFollowed(true);
