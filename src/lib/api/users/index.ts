@@ -34,8 +34,15 @@ export const getProfile = async (publickey: string) => {
   }
 };
 
+export const getCurrentUser = async () => {
+  const publickey = await window.nostr.getPublicKey();
+  const profile = await getProfile(publickey);
+  return profile;
+};
+
 export const getFollows = async (publickey: string) => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({
     query: { event: "event.follow", publickey },
   });
@@ -48,7 +55,8 @@ export const getFollows = async (publickey: string) => {
 };
 
 export const getFollowers = async (publickey: string) => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({
     query: { event: "event.follow", target: publickey },
   });
@@ -61,7 +69,8 @@ export const getFollowers = async (publickey: string) => {
 };
 
 export const isFollowed = async (publickey: string, target: string) => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({
     query: { event: "event.follow", publickey, target },
   });

@@ -2,12 +2,14 @@ import { eventRouteType, feedRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 import { CryptoUtils } from "../../../../utils/crypto";
+import { getCurrentUser } from "../users";
 
 export const postEvent = async (
   event: string,
   content: Record<string, any>
 ) => {
-  const client = hc<eventRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<eventRouteType>(user.repository);
   const timestamp = new Date().toISOString();
   const crypto = new CryptoUtils(calculateHash);
   const message = await crypto.createSecureMessage(event, timestamp, content);
@@ -25,14 +27,16 @@ export const postEvent = async (
 };
 
 export const deleteEvent = async (id: string) => {
-  const client = hc<eventRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<eventRouteType>(user.repository);
   const crypto = new CryptoUtils(calculateHash);
   const signature = await crypto.signMessage(id);
   await client.event.$delete({ json: { target: id, signature, content: id } });
 };
 
 export const getPosts = async () => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({ query: { event: "event.post" } });
   const feed = await res.json();
   if (!("error" in feed)) {
@@ -43,7 +47,8 @@ export const getPosts = async () => {
 };
 
 export const getUserPosts = async (publickey: string) => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({
     query: { event: "event.post", publickey },
   });
@@ -56,7 +61,8 @@ export const getUserPosts = async (publickey: string) => {
 };
 
 export const isPinned = async (publickey: string, target: string) => {
-  const client = hc<feedRouteType>("http://localhost:8000");
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
   const res = await client.feed.$get({
     query: { event: "event.pin", publickey, target },
   });
