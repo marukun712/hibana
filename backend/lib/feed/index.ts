@@ -1,10 +1,11 @@
 import type { rawDocument } from "../../schema/Document.ts";
-import { getEvent } from "../events/index.ts";
+import { getDoc } from "../docs/index.ts";
 
 export const createFeed = async (docs: rawDocument[]) => {
+  console.log(docs);
   const feed = await Promise.all(
     docs.map(async (doc) => {
-      const record = await getEvent(doc.value._id);
+      const record = await getDoc(doc.value._id);
 
       return record;
     })

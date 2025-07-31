@@ -1,6 +1,6 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal } from "solid-js";
 import { updateProfile } from "~/lib/api/users";
-import { Crypto } from "../../../utils/crypto";
+import { CryptoUtils } from "../../../utils/crypto";
 
 export default function SignupForm() {
   const [step, setStep] = createSignal(1);
@@ -9,10 +9,12 @@ export default function SignupForm() {
   const [description, setDescription] = createSignal("");
   const [repository, setRepository] = createSignal("");
   const [privateKey, setPrivateKey] = createSignal("");
+  const [copied, setCopied] = createSignal(false);
 
   function generateKey() {
-    const { privatekey: generated } = Crypto.generateKeyPair();
+    const { privatekey: generated } = CryptoUtils.generateKeyPair();
     setPrivateKey(generated);
+    setCopied(false);
   }
 
   async function update() {
@@ -23,15 +25,22 @@ export default function SignupForm() {
     setDescription("");
     setRepository("");
     setPrivateKey("");
+    setCopied(false);
+  }
+
+  async function copyPrivateKey() {
+    if (!privateKey()) return;
+    await navigator.clipboard.writeText(privateKey());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
-    <div class="hero min-h-screen bg-base-200 flex items-center justify-center p-4">
+    <div class="flex items-center justify-center p-4 min-h-screen">
       <div class="card w-full max-w-md shadow-2xl bg-base-100 animate-scale-up-center">
         <div class="card-body p-8">
-          <h1 class="text-center text-2xl font-bold mb-4">
-            IPFS-SNSへようこそ!
-          </h1>
+          <h1 class="text-center text-2xl font-bold mb-4">Hibanaへようこそ!</h1>
+
           {step() === 1 && (
             <div class="step-1">
               <h2 class="card-title mb-2">ステップ1:秘密鍵の生成</h2>
@@ -43,11 +52,20 @@ export default function SignupForm() {
                 秘密鍵を生成する
               </button>
               {privateKey() && (
-                <div class="alert alert-info mb-4">
-                  <label>
+                <div class="alert alert-info mb-4 flex flex-col">
+                  <label class="mb-2">
                     生成された秘密鍵:
-                    <span class="font-bold break-all">{privateKey()}</span>
+                    <span class="font-bold break-all ml-2">{privateKey()}</span>
                   </label>
+                  <button
+                    class="btn btn-sm btn-outline w-24"
+                    onClick={copyPrivateKey}
+                  >
+                    コピー
+                  </button>
+                  {copied() && (
+                    <span class="mt-2 text-sm">コピーしました！</span>
+                  )}
                 </div>
               )}
               <div class="card-actions justify-end">

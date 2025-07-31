@@ -1,57 +1,69 @@
 import { eventRouteType, feedRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
-import { Crypto } from "../../../../utils/crypto";
+import { CryptoUtils } from "../../../../utils/crypto";
 
 export const postEvent = async (
   event: string,
   content: Record<string, any>
 ) => {
   const client = hc<eventRouteType>("http://localhost:8000");
-
   const timestamp = new Date().toISOString();
-
-  const crypto = new Crypto(calculateHash);
-
+  const crypto = new CryptoUtils(calculateHash);
   const message = await crypto.createSecureMessage(event, timestamp, content);
 
-  if (message) await client.event.$post({ json: message });
+  if (message) {
+    const data = await client.event.$post({ json: message });
+    const json = await data.json();
+
+    if (!("error" in json)) {
+      return json.id;
+    } else {
+      throw new Error("投稿中にエラーが発生しました。");
+    }
+  }
+};
+
+export const deleteEvent = async (id: string) => {
+  const client = hc<eventRouteType>("http://localhost:8000");
+  const crypto = new CryptoUtils(calculateHash);
+  const signature = await crypto.signMessage(id);
+  await client.event.$delete({ json: { target: id, signature, content: id } });
 };
 
 export const getPosts = async () => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({ query: { event: "event.post" } });
-
   const feed = await res.json();
-
-  return feed;
+  if (!("error" in feed)) {
+    return feed;
+  } else {
+    throw new Error("取得中にエラーが発生しました。");
+  }
 };
 
 export const getUserPosts = async (publickey: string) => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({
     query: { event: "event.post", publickey },
   });
-
   const feed = await res.json();
-
-  return feed;
+  if (!("error" in feed)) {
+    return feed;
+  } else {
+    throw new Error("取得中にエラーが発生しました。");
+  }
 };
 
 export const isPinned = async (publickey: string, target: string) => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({
     query: { event: "event.pin", publickey, target },
   });
-
   const json = await res.json();
-
-  if (json.length > 0) {
-    return true;
+  if (!("error" in json) && json.length > 0) {
+    return { id: json[0].id, isPinned: true };
   } else {
-    return false;
+    return { id: null, isPinned: false };
   }
 };

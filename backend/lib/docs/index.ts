@@ -1,8 +1,12 @@
 import { hc } from "hono/client";
 import type { getRouteType } from "../../index.ts";
 import { getDB } from "../instances/db.ts";
-import { findProfileDoc, resolveIpfsDoc } from "../user/index.ts";
-import { Crypto, isValidPublickey } from "../../../utils/crypto.ts";
+import {
+  findProfileDoc,
+  isUserPublickey,
+  resolveIpfsDoc,
+} from "../user/index.ts";
+import { CryptoUtils } from "../../../utils/crypto.ts";
 import { calculateHash } from "../hash.ts";
 import {
   allDataSchema,
@@ -10,23 +14,24 @@ import {
   searchResult,
   type documentType,
 } from "../../schema/Document.ts";
-import { type eventType, EventSchema } from "../../schema/Event.ts";
-import { putRecord } from "../../db/index.ts";
+import { type eventType, eventSchema } from "../../schema/Event.ts";
+import { deleteEvent, putEvent } from "../../db/index.ts";
 import { isCID } from "../../../utils/cid.ts";
+import type { deleteSchemaType } from "../../schema/Query.ts";
 
-export const writeDocument = async (document: documentType) => {
+export const writeDoc = async (document: documentType) => {
   const parsed = documentSchema.safeParse(document);
 
   if (!parsed.success) {
     console.error("Document schema validation failed:", parsed.error);
-    return;
+    throw new Error("Verify failed.");
   }
 
   const db = await getDB();
   await db.put(document);
 };
 
-export const getAllDocument = async () => {
+export const getAllDocs = async () => {
   const db = await getDB();
   const data = await db.all();
 
@@ -34,13 +39,13 @@ export const getAllDocument = async () => {
 
   if (!parsed.success) {
     console.error("Search result schema validation failed:", parsed.error);
-    return [];
+    throw new Error("Verify failed.");
   }
 
   return parsed.data;
 };
 
-export const searchDocument = async (query: { [key: string]: string }) => {
+export const searchDocs = async (query: { [key: string]: string }) => {
   const db = await getDB();
 
   const result = await db.query((doc: any) =>
@@ -51,7 +56,7 @@ export const searchDocument = async (query: { [key: string]: string }) => {
 
   if (!parsed.success) {
     console.error("Search result schema validation failed:", parsed.error);
-    return [];
+    throw new Error("Verify failed.");
   }
 
   const data = parsed.data.map((doc) => {
@@ -62,7 +67,7 @@ export const searchDocument = async (query: { [key: string]: string }) => {
 };
 
 //orbitdb上のレコードからリポジトリサーバーのレコードを解決
-export const resolveRepositoryDocument = async (document: documentType) => {
+export const resolveRepositoryDoc = async (document: documentType) => {
   //もしeventがprofile更新イベントなら
   if (document.event == "event.profile") {
     return null;
@@ -81,7 +86,7 @@ export const resolveRepositoryDocument = async (document: documentType) => {
 
   if (data.status == 200) {
     const json = await data.json();
-    const parsedEvent = EventSchema.safeParse(json);
+    const parsedEvent = eventSchema.safeParse(json);
 
     if (!parsedEvent.success) {
       console.error("Event schema validation failed:", parsedEvent.error);
@@ -91,7 +96,7 @@ export const resolveRepositoryDocument = async (document: documentType) => {
     const event = parsedEvent.data;
 
     //データの検証
-    const crypto = new Crypto(calculateHash);
+    const crypto = new CryptoUtils(calculateHash);
     const verify = await crypto.verifySecureMessage(event);
     if (!verify) {
       return null;
@@ -104,19 +109,19 @@ export const resolveRepositoryDocument = async (document: documentType) => {
   }
 };
 
-export const getEvent = async (id: string) => {
-  const docs = await searchDocument({ _id: id });
+export const getDoc = async (id: string) => {
+  const docs = await searchDocs({ _id: id });
 
   if (docs[0]) {
     const event = docs[0].value;
 
     //eventを解決
-    const record = await resolveRepositoryDocument(event);
+    const record = await resolveRepositoryDoc(event);
 
     if (record) {
       if (event.target) {
         //targetが有効な公開鍵(ユーザーを指していた)場合
-        if (isValidPublickey(event.target)) {
+        if (await isUserPublickey(event.target)) {
           //ユーザーをターゲットとする
           const targetDoc = await findProfileDoc(event.target);
 
@@ -127,12 +132,12 @@ export const getEvent = async (id: string) => {
           return { ...record, target: targetDoc };
         } else {
           //ターゲットがipfs上のファイルを指していた場合
-          const doc = await searchDocument({ _id: event.target });
+          const doc = await searchDocs({ _id: event.target });
           if (!doc[0]) return null;
           const targetDoc = doc[0].value;
 
           //ドキュメントが指しているレコードをターゲットとする
-          const targetRecord = await resolveRepositoryDocument(targetDoc);
+          const targetRecord = await resolveRepositoryDoc(targetDoc);
           if (!targetRecord) return null;
 
           return { ...record, target: targetRecord };
@@ -144,20 +149,20 @@ export const getEvent = async (id: string) => {
     } else {
       return null;
     }
+  } else {
+    return null;
   }
-
-  return null;
 };
 
-export const putEvent = async (event: eventType) => {
+export const putDoc = async (event: eventType) => {
   //データの検証
-  const crypto = new Crypto(calculateHash);
+  const crypto = new CryptoUtils(calculateHash);
   const verify = await crypto.verifySecureMessage(event);
-  const parsedEvent = EventSchema.safeParse(event);
+  const parsedEvent = eventSchema.safeParse(event);
 
   if (!parsedEvent.success) {
     console.error("Event schema validation failed:", parsedEvent.error);
-    return null;
+    throw new Error("Validation failed");
   }
 
   const message = event.message as Record<string, any>;
@@ -178,14 +183,38 @@ export const putEvent = async (event: eventType) => {
 
     //orbitdbにeventを保存
     if (parsed.success) {
-      await writeDocument(parsed.data);
+      await writeDoc(parsed.data);
     }
 
     //リポジトリにも保存
-    await putRecord(event);
+    await putEvent(event);
 
     return event;
   } else {
-    return null;
+    throw new Error("Verify failed.");
+  }
+};
+
+export const deleteDoc = async (data: deleteSchemaType) => {
+  const docs = await searchDocs({ _id: data.target });
+
+  if (docs[0]) {
+    const event = docs[0].value;
+    const crypto = new CryptoUtils(calculateHash);
+
+    //署名を検証して本人確認
+    const isValid = await crypto.verifySignature(
+      event.publickey,
+      data.signature,
+      data.content
+    );
+
+    if (isValid) {
+      deleteEvent({ id: data.target, publickey: event.publickey });
+    } else {
+      throw new Error("Verify failed.");
+    }
+  } else {
+    throw new Error("Document is not found.");
   }
 };

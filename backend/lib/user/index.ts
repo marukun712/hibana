@@ -1,8 +1,8 @@
-import { Crypto } from "../../../utils/crypto.ts";
+import { CryptoUtils } from "../../../utils/crypto.ts";
 import { documentSchema, type documentType } from "../../schema/Document.ts";
 import { profileSchema, type profileType } from "../../schema/Profile.ts";
 import { calculateHash } from "../hash.ts";
-import { searchDocument, writeDocument } from "../events/index.ts";
+import { searchDocs, writeDoc } from "../docs/index.ts";
 import { getClient } from "../instances/ipfs.ts";
 import { CID } from "kubo-rpc-client";
 
@@ -11,10 +11,10 @@ export const updateUser = async (profile: profileType) => {
 
   if (!parsedProfile.success) {
     console.error("Profile schema validation failed:", parsedProfile.error);
-    return null;
+    throw new Error("Validation failed");
   }
 
-  const crypto = new Crypto(calculateHash);
+  const crypto = new CryptoUtils(calculateHash);
   const verify = await crypto.verifyUserDoc(parsedProfile.data);
 
   if (verify) {
@@ -31,12 +31,12 @@ export const updateUser = async (profile: profileType) => {
 
     const parsed = documentSchema.safeParse(document);
     if (parsed.success) {
-      await writeDocument(document);
+      await writeDoc(document);
     }
 
     return document;
   } else {
-    return null;
+    throw new Error("Verify failed");
   }
 };
 
@@ -44,21 +44,21 @@ export const updateUser = async (profile: profileType) => {
 export const findProfileDoc = async (
   publickey: string
 ): Promise<profileType | null> => {
-  const data = await searchDocument({ publickey, event: "event.profile" });
+  const data = await searchDocs({ publickey, event: "event.profile" });
 
   if (data[0] && data[0].value.target) {
     const doc = await resolveIpfsDoc(data[0].value.target);
 
-    const success = profileSchema.safeParse(doc);
+    const parsed = profileSchema.safeParse(doc);
 
-    if (success.success) {
-      return success.data;
+    if (parsed.success) {
+      return parsed.data;
     } else {
-      console.error("Profile schema validation failed:", success.error);
-      return null;
+      console.error("Profile schema validation failed:", parsed.error);
+      throw new Error("Validation failed");
     }
   } else {
-    return null;
+    throw new Error("User is not found");
   }
 };
 
@@ -76,12 +76,22 @@ export const resolveIpfsDoc = async (
   const buffer = Buffer.concat(chunks).toString("utf-8");
   const doc = JSON.parse(buffer);
 
-  const crypto = new Crypto(calculateHash);
+  const crypto = new CryptoUtils(calculateHash);
   const verify = await crypto.verifyUserDoc(doc);
 
   if (verify) {
     return doc;
   } else {
-    return null;
+    throw new Error("Verify failed");
+  }
+};
+
+export const isUserPublickey = async (publickey: string) => {
+  const data = await searchDocs({ publickey, event: "event.profile" });
+
+  if (data.length > 0) {
+    return true;
+  } else {
+    return false;
   }
 };

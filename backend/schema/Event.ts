@@ -11,7 +11,7 @@ export const events = sqliteTable("events", {
   message: text({ mode: "json" }).notNull(),
 });
 
-export const EventSchema = createSelectSchema(events);
-export type eventType = z.infer<typeof EventSchema> & {
+export const eventSchema = createSelectSchema(events);
+export type eventType = z.infer<typeof eventSchema> & {
   message: Json | Record<string, any>;
 };

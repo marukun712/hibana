@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 import { getDB } from "./db.ts";
-import { Crypto } from "../../utils/crypto.ts";
+import { CryptoUtils } from "../../utils/crypto.ts";
 import { calculateHash } from "../lib/hash.ts";
 import type { getSchemaType } from "../schema/Query.ts";
 import { events, type eventType } from "../schema/Event.ts";
 
-export const getRecord = async (json: getSchemaType) => {
+export const getEvent = async (json: getSchemaType) => {
   //DBファイルをopen
   const db = getDB(json.publickey);
   const data = await db.select().from(events).where(eq(events.id, json.id));
@@ -14,20 +14,25 @@ export const getRecord = async (json: getSchemaType) => {
 
   if (post) {
     //データを検証
-    const crypto = new Crypto(calculateHash);
+    const crypto = new CryptoUtils(calculateHash);
     const verify = await crypto.verifySecureMessage(post as eventType);
 
     if (verify) {
       return post;
     } else {
-      return null;
+      throw new Error("Verify failed");
     }
   } else {
-    return null;
+    throw new Error("Event is not found");
   }
 };
 
-export const putRecord = async (json: eventType) => {
+export const putEvent = async (json: eventType) => {
   const db = getDB(json.publickey);
   await db.insert(events).values(json);
+};
+
+export const deleteEvent = async (json: getSchemaType) => {
+  const db = getDB(json.publickey);
+  await db.delete(events).where(eq(events.id, json.id));
 };

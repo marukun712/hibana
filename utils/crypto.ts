@@ -3,7 +3,7 @@ import type { profileType } from "../backend/schema/Profile.ts";
 import type { eventType } from "../backend/schema/Event.ts";
 import { schnorr } from "@noble/curves/secp256k1.js";
 
-export class Crypto {
+export class CryptoUtils {
   private calculateHash: (content: string) => Promise<Uint8Array>;
 
   constructor(calculateHash: (content: string) => Promise<Uint8Array>) {
@@ -51,9 +51,8 @@ export class Crypto {
     message: Record<string, any>
   ): Promise<eventType | null> {
     const publickey = await window.nostr.getPublicKey();
-    if (!isValidPublickey(publickey) || !publickey) {
-      console.error("Invalid public key");
-      return null;
+    if (!publickey) {
+      throw new Error("公開鍵が不正です");
     }
 
     const json = JSON.stringify({ event, timestamp, message });
@@ -102,9 +101,9 @@ export class Crypto {
     });
 
     const publickey = await window.nostr.getPublicKey();
-    if (!isValidPublickey(publickey) || !publickey) {
+    if (!publickey) {
       console.error("Invalid public key");
-      return null;
+      throw new Error("公開鍵が不正です");
     }
 
     const messageHash = await this.calculateHash(json);
@@ -154,12 +153,3 @@ export class Crypto {
     return await this.verifySignature(publickey, signature, content);
   }
 }
-
-export const isValidPublickey = (hex: string) => {
-  try {
-    const x = BigInt("0x" + hex);
-    return schnorr.utils.lift_x(x) !== undefined;
-  } catch {
-    return false;
-  }
-};

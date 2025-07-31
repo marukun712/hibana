@@ -1,22 +1,30 @@
 import { z } from "zod";
 
-export const getSchema = z.object({
+export const getRequestSchema = z.object({
   publickey: z.string(),
   id: z.string(),
 });
 
-export type getSchemaType = z.infer<typeof getSchema>;
+export type getSchemaType = z.infer<typeof getRequestSchema>;
 
-export const feedSchema = z.object({
+export const feedRequestSchema = z.object({
   publickey: z.string().optional(),
   event: z.string().optional(),
   target: z.string().optional(),
 });
 
-export const eventQuerySchema = z.object({
+export const eventRequestSchema = z.object({
   id: z.string(),
 });
 
-export const profileQuerySchema = z.object({
+export const profileRequestSchema = z.object({
   publickey: z.string(),
 });
+
+export const deleteRequestSchema = z.object({
+  target: z.string(),
+  content: z.string(),
+  signature: z.string(),
+});
+
+export type deleteSchemaType = z.infer<typeof deleteRequestSchema>;

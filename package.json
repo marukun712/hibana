@@ -14,6 +14,7 @@
     "@noble/curves": "1.9.2",
     "@noble/secp256k1": "2.2.3",
     "@orbitdb/core": "^2.5.0",
+    "@solid-primitives/scheduled": "^1.5.2",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
     "daisyui": "^5.0.27",

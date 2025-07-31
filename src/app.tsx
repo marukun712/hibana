@@ -9,7 +9,7 @@ export default function App() {
   return (
     <Router
       root={(props) => (
-        <div data-theme="dark">
+        <div data-theme="hibana">
           <Header />
           <Suspense>
             <Main>{props.children}</Main>

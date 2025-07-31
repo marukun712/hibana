@@ -1,7 +1,7 @@
 import { feedRouteType, profileRouteType } from "../../../../backend";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
-import { Crypto } from "../../../../utils/crypto";
+import { CryptoUtils } from "../../../../utils/crypto";
 
 export const updateProfile = async (
   username: string,
@@ -10,11 +10,8 @@ export const updateProfile = async (
   repository: string
 ) => {
   const client = hc<profileRouteType>("http://localhost:8000");
-
   const updatedAt = new Date().toISOString();
-
-  const crypto = new Crypto(calculateHash);
-
+  const crypto = new CryptoUtils(calculateHash);
   const doc = await crypto.createUserDoc(
     username,
     icon,
@@ -28,44 +25,50 @@ export const updateProfile = async (
 
 export const getProfile = async (publickey: string) => {
   const client = hc<profileRouteType>("http://localhost:8000");
-
   const res = await client.profile.$get({ query: { publickey } });
-
-  return await res.json();
+  const json = await res.json();
+  if (!("error" in json)) {
+    return json;
+  } else {
+    throw new Error("取得中にエラーが発生しました。");
+  }
 };
 
 export const getFollows = async (publickey: string) => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({
     query: { event: "event.follow", publickey },
   });
-
-  return await res.json();
+  const feed = await res.json();
+  if (!("error" in feed)) {
+    return feed;
+  } else {
+    throw new Error("取得中にエラーが発生しました。");
+  }
 };
 
 export const getFollowers = async (publickey: string) => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({
     query: { event: "event.follow", target: publickey },
   });
-
-  return await res.json();
+  const feed = await res.json();
+  if (!("error" in feed)) {
+    return feed;
+  } else {
+    throw new Error("取得中にエラーが発生しました。");
+  }
 };
 
 export const isFollowed = async (publickey: string, target: string) => {
   const client = hc<feedRouteType>("http://localhost:8000");
-
   const res = await client.feed.$get({
     query: { event: "event.follow", publickey, target },
   });
-
   const json = await res.json();
-
-  if (json.length > 0) {
-    return true;
+  if (!("error" in json) && json.length > 0) {
+    return { id: json[0].id, isFollowed: true };
   } else {
-    return false;
+    return { id: null, isFollowed: false };
   }
 };

@@ -2,6 +2,50 @@
 @plugin "daisyui" {
   themes: all;
 }
+@plugin "daisyui/theme" {
+  name: "modern-orange";
+  default: false;
+  prefersdark: true;
+  color-scheme: "dark";
+
+  --color-base-100: oklch(28% 0.02 240);
+  --color-base-200: oklch(24% 0.015 240);
+  --color-base-300: oklch(20% 0.01 240);
+  --color-base-content: oklch(95% 0.01 240);
+
+  --color-primary: oklch(70% 0.21 50);
+  --color-primary-content: oklch(15% 0.02 50);
+
+  --color-secondary: oklch(75% 0.15 75);
+  --color-secondary-content: oklch(20% 0.01 75);
+
+  --color-accent: oklch(80% 0.12 170);
+  --color-accent-content: oklch(25% 0.02 170);
+
+  --color-neutral: oklch(80% 0.02 240);
+  --color-neutral-content: oklch(20% 0.01 240);
+
+  --color-info: oklch(80% 0.12 230);
+  --color-info-content: oklch(20% 0.05 230);
+
+  --color-success: oklch(80% 0.14 145);
+  --color-success-content: oklch(20% 0.05 145);
+
+  --color-warning: oklch(85% 0.18 80);
+  --color-warning-content: oklch(25% 0.07 80);
+
+  --color-error: oklch(75% 0.2 25);
+  --color-error-content: oklch(20% 0.02 25);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
 
 @theme {
   --animate-scale-up-center: scale-up-center 0.4s

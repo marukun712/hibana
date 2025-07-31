@@ -9,6 +9,9 @@
   "peerDependencies": {
     "typescript": "^5"
   },
+  "scripts": {
+    "dev": "node index.ts"
+  },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "@constl/orbit-db-types": "^2.0.6",
@@ -22,6 +25,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^11.10.0",
     "blockstore-fs": "^2.0.2",
+    "blockstore-level": "^2.0.3",
     "datastore-level": "^11.0.1",
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",
