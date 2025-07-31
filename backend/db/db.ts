@@ -5,7 +5,7 @@ import Database from "better-sqlite3";
 export const getDB = (publickey: string) => {
   //パストラバーサルできるかもしれないので気を付ける
 
-  const sqlite = new Database(`./repository/${publickey}.db`);
+  const sqlite = new Database(`./repository/${publickey}.hibana`);
   const db: BetterSQLite3Database = drizzle(sqlite);
 
   migrate(db, { migrationsFolder: "./drizzle" });

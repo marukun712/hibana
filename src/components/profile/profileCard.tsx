@@ -43,7 +43,9 @@ export default function ProfileCard() {
                 <FollowButton target={user()!.publickey} />
 
                 <div class="mt-4 space-y-4">
-                  <h2 class="text-2xl font-bold">{user()!.username}</h2>
+                  <h2 class="text-2xl font-bold">
+                    {user()!.username}@{user()!.repository}
+                  </h2>
                   <h2 class="text-sm text-gray-500">{user()!.publickey}</h2>
                   <p class="text-sm">{user()!.description}</p>
 

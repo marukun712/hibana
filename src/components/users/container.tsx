@@ -19,6 +19,7 @@ export default function UsersContainer() {
           return data.user;
         });
         setUsers(usersData);
+        break;
       }
       case "follower": {
         const data = await getFollowers(publickey);
@@ -26,6 +27,7 @@ export default function UsersContainer() {
           return data.user;
         });
         setUsers(usersData);
+        break;
       }
     }
   });
