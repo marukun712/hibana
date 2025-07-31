@@ -25,7 +25,7 @@ import { logger } from "hono/logger";
 
 const app = new Hono();
 
-//app.use(logger());
+app.use(logger());
 //イベント解決用エンドポイント
 app.use("/get", cors());
 const getPostRoute = app.get(
