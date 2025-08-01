@@ -1,6 +1,6 @@
 # Server
 
-## Setup
+# Setup
 
 ipfs をマシンにインストールします。
 
@@ -27,7 +27,7 @@ ipfs daemon
 yarn dev
 ```
 
-## 初期化
+# 初期化
 
 - repository/
 - helia/
