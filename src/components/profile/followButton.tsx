@@ -29,7 +29,7 @@ export default function FollowButton(props: { target: string }) {
   onMount(async () => {
     const user = await getCurrentUser();
     const publickey = user.publickey;
-    const result = await isFollowed(pubkey, props.target);
+    const result = await isFollowed(publickey, props.target);
     if (result.isFollowed) {
       setFollowed(true);
       setFollowedId(result.id);

@@ -11,6 +11,7 @@ import {
   Documents,
 } from "@orbitdb/core";
 import * as dotenv from "dotenv";
+import { multiaddr } from "kubo-rpc-client";
 
 dotenv.config();
 
@@ -40,7 +41,13 @@ export const getDB = async () => {
   const storage = await IPFSBlockStorage({ ipfs, pin: true });
   const orbitdb = await createOrbitDB({ ipfs });
 
-  db = await orbitdb.open("sns-db", {
+  libp2p.dial([
+    multiaddr(
+      "/ip4/100.112.237.81/tcp/4002/p2p/12D3KooWSkwLBbv5Lm8DV4xJMf7nWna4bX5NNNGywvcApNpXKaiy"
+    ),
+  ]);
+
+  db = await orbitdb.open(address, {
     Database: Documents({ storage, indexBy: "_id" }),
     type: "documents",
     AccessController: IPFSAccessController({ write: ["*"] }),
