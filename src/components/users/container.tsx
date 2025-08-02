@@ -16,8 +16,9 @@ export default function UsersContainer() {
       case "follow": {
         const data = await getFollows(publickey);
         const usersData = data.map((data) => {
-          return data.user;
+          return data.target as profileType;
         });
+
         setUsers(usersData);
         break;
       }
