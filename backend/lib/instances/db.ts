@@ -11,13 +11,10 @@ import {
   Documents,
 } from "@orbitdb/core";
 import * as dotenv from "dotenv";
-import { multiaddr } from "kubo-rpc-client";
-
 dotenv.config();
 
 let db: any;
-
-const address = "/orbitdb/zdpuAukSpmTeWB4MM7EW6wwvVRjSeuMkKNCTycyWpcLukfw9r";
+const address = "/orbitdb/zdpuAmMFMfBhYnJG3wQiWBEKcJe7axn6cKj57a786zdLuuXjC";
 
 const options = libp2pDefaults();
 options.addresses!.listen = [`/ip4/0.0.0.0/tcp/4002`];
@@ -41,20 +38,13 @@ export const getDB = async () => {
   const storage = await IPFSBlockStorage({ ipfs, pin: true });
   const orbitdb = await createOrbitDB({ ipfs });
 
-  libp2p.dial([
-    multiaddr(
-      "/ip4/100.112.237.81/tcp/4002/p2p/12D3KooWSkwLBbv5Lm8DV4xJMf7nWna4bX5NNNGywvcApNpXKaiy"
-    ),
-  ]);
-
-  db = await orbitdb.open(address, {
+  db = await orbitdb.open("hibana-db", {
     Database: Documents({ storage, indexBy: "_id" }),
     type: "documents",
     AccessController: IPFSAccessController({ write: ["*"] }),
   });
 
-  console.log(libp2p.getMultiaddrs());
-  console.log(libp2p.peerId);
+  console.log(db.address);
 
   db.events.on("join", async (peerId: string) => {
     console.log(peerId);

@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  client:
+    cmds:
+      - task: logo
+      - npm run dev
+
+  server:
+    deps:
+      - task: logo
+      - task: ipfs
+      - task: backend
+
+  logo:
+    cmds:
+      - npx oh-my-logo "hibana" sunset --filled
+
+  ipfs:
+    cmds:
+      - ipfs daemon
+
+  backend:
+    dir: backend
+    cmds:
+      - npm run dev
+    silent: true

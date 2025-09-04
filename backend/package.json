@@ -1,16 +1,9 @@
 {
-  "name": "backend",
-  "module": "index.ts",
+  "name": "hibana-backend",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
   "scripts": {
-    "dev": "node index.ts"
+    "dev": "npx tsx index.ts"
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",

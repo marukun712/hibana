@@ -68,7 +68,7 @@ export const resolveIpfsDoc = async (
 ): Promise<Record<string, any> | null> => {
   const client = await getClient();
 
-  const raw = await client.cat(CID.parse(cid));
+  const raw = client.cat(CID.parse(cid));
   const chunks = [];
   for await (const chunk of raw) {
     chunks.push(chunk);

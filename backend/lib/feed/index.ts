@@ -6,9 +6,8 @@ export const createFeed = async (docs: rawDocument[]) => {
   const feed = await Promise.all(
     docs.map(async (doc) => {
       const record = await getDoc(doc.value._id);
-
       return record;
-    })
+    }),
   );
 
   return feed.filter((doc) => doc !== null && doc !== undefined);

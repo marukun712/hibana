@@ -1,5 +1,5 @@
 {
-  "name": "example-with-tailwindcss",
+  "name": "hibana-frontend",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",
@@ -7,7 +7,7 @@
     "start": "vinxi start"
   },
   "workspaces": [
-    "backend/*"
+    "backend"
   ],
   "dependencies": {
     "@helia/json": "^4.0.5",
@@ -27,7 +27,9 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",
-    "tailwindcss": "^4.0.7"
+    "tailwindcss": "^4.0.7",
+    "oxlint": "^1.14.0",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=22"
