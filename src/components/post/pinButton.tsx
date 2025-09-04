@@ -2,6 +2,7 @@ import { createSignal, onMount } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import { deleteEvent, isPinned, postEvent } from "~/lib/api/event";
 import { getCurrentUser } from "~/lib/api/users";
+import { AiOutlineBook, AiFillBook } from "solid-icons/ai";
 
 export default function PinButton(props: { target: string }) {
   const [pinned, setPinned] = createSignal(false);
@@ -50,19 +51,7 @@ export default function PinButton(props: { target: string }) {
         pinned() ? "text-primary" : "text-base-content/60"
       } hover:text-primary`}
     >
-      <svg
-        class="w-4 h-4"
-        fill={pinned() ? "currentColor" : "none"}
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-        ></path>
-      </svg>
+      {pinned() ? <AiFillBook size={16} /> : <AiOutlineBook size={16} />}
       <span class="text-sm">{pinned() ? "ピン済み" : "ピン"}</span>
     </button>
   );

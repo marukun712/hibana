@@ -1,5 +1,6 @@
 import { profileType } from "../../../backend/schema/Profile";
 import PinButton from "./pinButton";
+import RepostButton from "./repostButton";
 
 export default function Post(props: {
   id: string;
@@ -32,6 +33,15 @@ export default function Post(props: {
           <p class="text-base leading-relaxed mb-3">{props.text}</p>
           <div class="flex items-center gap-6">
             <PinButton target={props.id} />
+            <RepostButton 
+              target={props.id}
+              originalPost={{
+                id: props.id,
+                text: props.text,
+                postedAt: props.postedAt,
+                user: props.user
+              }}
+            />
           </div>
         </div>
       </div>
