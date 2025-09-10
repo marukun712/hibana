@@ -50,9 +50,13 @@ export const getPosts = async () => {
   const quoteRepostsRes = await client.feed.$get({ query: { event: "event.quote_repost" } });
   const quoteReposts = await quoteRepostsRes.json();
   
-  if (!("error" in posts) && !("error" in reposts) && !("error" in quoteReposts)) {
-    // 投稿、リポスト、引用リポストを統合してタイムスタンプでソート
-    const allItems = [...posts, ...reposts, ...quoteReposts].sort((a, b) => 
+  // リプライを取得
+  const repliesRes = await client.feed.$get({ query: { event: "event.reply" } });
+  const replies = await repliesRes.json();
+  
+  if (!("error" in posts) && !("error" in reposts) && !("error" in quoteReposts) && !("error" in replies)) {
+    // 投稿、リポスト、引用リポスト、リプライを統合してタイムスタンプでソート
+    const allItems = [...posts, ...reposts, ...quoteReposts, ...replies].sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
     return allItems;
@@ -100,5 +104,21 @@ export const isReposted = async (publickey: string, target: string) => {
     return { id: json[0].id, isReposted: true };
   } else {
     return { id: null, isReposted: false };
+  }
+};
+
+export const getReplies = async (postId: string) => {
+  const user = await getCurrentUser();
+  const client = hc<feedRouteType>(user.repository);
+  const res = await client.feed.$get({
+    query: { event: "event.reply", target: postId },
+  });
+  const replies = await res.json();
+  if (!("error" in replies)) {
+    return replies.sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+  } else {
+    throw new Error("リプライの取得中にエラーが発生しました。");
   }
 };
