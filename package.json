@@ -1,38 +1,45 @@
 {
-  "name": "hibana-frontend",
-  "type": "module",
-  "scripts": {
-    "dev": "vinxi dev",
-    "build": "vinxi build",
-    "start": "vinxi start"
-  },
-  "workspaces": [
-    "backend"
-  ],
-  "dependencies": {
-    "@helia/json": "^4.0.5",
-    "@noble/curves": "1.9.2",
-    "@noble/secp256k1": "2.2.3",
-    "@orbitdb/core": "^2.5.0",
-    "@solid-primitives/scheduled": "^1.5.2",
-    "@solidjs/router": "^0.15.0",
-    "@solidjs/start": "^1.1.0",
-    "daisyui": "^5.0.27",
-    "helia": "^5.4.1",
-    "hono": "4.7.11",
-    "kubo-rpc-client": "^5.1.0",
-    "lucide-solid": "^0.503.0",
-    "solid-icons": "^1.1.0",
-    "solid-js": "^1.9.5",
-    "vinxi": "^0.5.3"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.7",
-    "oxlint": "^1.14.0",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^4.0.7"
-  },
-  "engines": {
-    "node": ">=22"
-  }
+	"name": "hibana-frontend",
+	"type": "module",
+	"scripts": {
+		"dev": "vinxi dev",
+		"build": "vinxi build",
+		"start": "vinxi start",
+		"format": "biome format ./",
+		"format:fix": "biome format --write ./",
+		"lint": "biome lint ./",
+		"lint:fix": "biome lint --write ./",
+		"check": "biome check ./",
+		"check:fix": "biome check --write ./"
+	},
+	"workspaces": [
+		"backend"
+	],
+	"dependencies": {
+		"@helia/json": "^4.0.5",
+		"@noble/curves": "1.9.2",
+		"@noble/secp256k1": "2.2.3",
+		"@orbitdb/core": "^2.5.0",
+		"@solid-primitives/scheduled": "^1.5.2",
+		"@solidjs/router": "^0.15.0",
+		"@solidjs/start": "^1.1.0",
+		"daisyui": "^5.0.27",
+		"helia": "^5.4.1",
+		"hono": "4.7.11",
+		"kubo-rpc-client": "^5.1.0",
+		"lucide-solid": "^0.503.0",
+		"solid-icons": "^1.1.0",
+		"solid-js": "^1.9.5",
+		"vinxi": "^0.5.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.4",
+		"@tailwindcss/vite": "^4.0.7",
+		"oxlint": "^1.14.0",
+		"prettier": "^3.6.2",
+		"tailwindcss": "^4.0.7"
+	},
+	"engines": {
+		"node": ">=22"
+	}
 }

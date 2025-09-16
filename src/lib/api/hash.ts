@@ -1,8 +1,8 @@
 export const calculateHash = async (content: string): Promise<Uint8Array> => {
-  const hash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(content)
-  );
+	const hash = await crypto.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(content),
+	);
 
-  return new Uint8Array(hash);
+	return new Uint8Array(hash);
 };
