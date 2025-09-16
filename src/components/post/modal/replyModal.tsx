@@ -1,7 +1,7 @@
 import { AiOutlineClose } from "solid-icons/ai";
 import { createSignal, Show } from "solid-js";
 import { createReply } from "~/lib/api/posts";
-import type { profileType } from "../../../backend/schema/Profile";
+import type { profileType } from "../../../../backend/schema/Profile";
 
 export default function ReplyModal(props: {
 	originalPost: {
@@ -67,7 +67,6 @@ export default function ReplyModal(props: {
 					</div>
 
 					<form onSubmit={handleSubmit} class="p-4">
-						{/* 元の投稿のプレビュー */}
 						<div class="border border-base-300 rounded-lg p-3 mb-4 bg-base-50">
 							<div class="flex gap-3">
 								<div class="avatar">

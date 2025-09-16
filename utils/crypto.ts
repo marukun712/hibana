@@ -1,6 +1,6 @@
 import { schnorr } from "@noble/curves/secp256k1.js";
 import * as secp256k1 from "@noble/secp256k1";
-import type { EventContent, eventType } from "../backend/schema/Event.ts";
+import type { eventType } from "../backend/schema/Event.ts";
 import type { profileType } from "../backend/schema/Profile.ts";
 
 export class CryptoUtils {
@@ -48,7 +48,7 @@ export class CryptoUtils {
 	async createSecureMessage(
 		event: string,
 		timestamp: string,
-		message: EventContent,
+		message: { [key: string]: unknown },
 	): Promise<eventType | null> {
 		const publickey = await window.nostr.getPublicKey();
 		if (!publickey) {

@@ -1,7 +1,7 @@
 import type { profileType } from "../../../backend/schema/Profile";
-import PinButton from "./pinButton";
-import ReplyButton from "./replyButton";
-import RepostButton from "./repostButton";
+import PinButton from "./button/pinButton";
+import ReplyButton from "./button/replyButton";
+import RepostButton from "./button/repostButton";
 
 export default function Reply(props: {
 	id: string;

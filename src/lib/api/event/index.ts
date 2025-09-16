@@ -1,11 +1,13 @@
 import { hc } from "hono/client";
 import type { eventRouteType, feedRouteType } from "../../../../backend";
-import type { EventContent } from "../../../../backend/schema/Event";
 import { CryptoUtils } from "../../../../utils/crypto";
 import { calculateHash } from "../hash";
 import { getCurrentUser } from "../users";
 
-export const postEvent = async (event: string, content: EventContent) => {
+export const postEvent = async (
+	event: string,
+	content: { [key: string]: unknown },
+) => {
 	const user = await getCurrentUser();
 	const client = hc<eventRouteType>(user.repository);
 	const timestamp = new Date().toISOString();
@@ -36,23 +38,16 @@ export const getPosts = async () => {
 	const user = await getCurrentUser();
 	const client = hc<feedRouteType>(user.repository);
 
-	// 通常の投稿を取得
 	const postsRes = await client.feed.$get({ query: { event: "event.post" } });
 	const posts = await postsRes.json();
-
-	// リポストを取得
 	const repostsRes = await client.feed.$get({
 		query: { event: "event.repost" },
 	});
 	const reposts = await repostsRes.json();
-
-	// 引用リポストを取得
 	const quoteRepostsRes = await client.feed.$get({
 		query: { event: "event.quote_repost" },
 	});
 	const quoteReposts = await quoteRepostsRes.json();
-
-	// リプライを取得
 	const repliesRes = await client.feed.$get({
 		query: { event: "event.reply" },
 	});
@@ -64,7 +59,6 @@ export const getPosts = async () => {
 		!("error" in quoteReposts) &&
 		!("error" in replies)
 	) {
-		// 投稿、リポスト、引用リポスト、リプライを統合してタイムスタンプでソート
 		const allItems = [...posts, ...reposts, ...quoteReposts, ...replies].sort(
 			(a, b) =>
 				new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),

@@ -6,9 +6,7 @@ export default function PostForm() {
 
 	async function post(text: string) {
 		if (!text.trim()) return;
-
 		await createPost(text);
-
 		setText("");
 	}
 
@@ -27,7 +25,6 @@ export default function PostForm() {
 				value={text()}
 				onChange={(e) => setText(e.target.value)}
 			/>
-
 			<button class="btn btn-primary" type="submit">
 				投稿
 			</button>

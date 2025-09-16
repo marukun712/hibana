@@ -11,8 +11,6 @@ export default function Feed(props: { user?: string }) {
 		const rawPosts = props.user
 			? await getUserPosts(props.user)
 			: await getPosts();
-
-		// リプライツリーを構築
 		const postsWithReplies = buildReplyTree(rawPosts);
 		setPosts(postsWithReplies);
 	});

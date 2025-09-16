@@ -2,8 +2,8 @@ import { debounce } from "@solid-primitives/scheduled";
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
 import { createSignal, onMount, Show } from "solid-js";
 import { checkRepostStatus, repostPost, unrepostPost } from "~/lib/api/social";
-import type { profileType } from "../../../backend/schema/Profile";
-import QuoteRepostModal from "./quoteRepostModal";
+import type { profileType } from "../../../../backend/schema/Profile";
+import QuoteRepostModal from "../modal/quoteRepostModal";
 
 export default function RepostButton(props: {
 	target: string;
@@ -66,7 +66,6 @@ export default function RepostButton(props: {
 				<span class="text-sm">{reposted() ? "リポスト済み" : "リポスト"}</span>
 			</button>
 
-			{/* リポストメニュー */}
 			<Show when={showMenu()}>
 				<div class="absolute bottom-full left-0 mb-2 bg-base-100 border border-base-300 rounded-lg shadow-lg z-10 min-w-48">
 					<button
@@ -96,7 +95,6 @@ export default function RepostButton(props: {
 				</div>
 			</Show>
 
-			{/* メニューを閉じるための背景 */}
 			<Show when={showMenu()}>
 				<div
 					class="fixed inset-0 z-0"
@@ -112,13 +110,11 @@ export default function RepostButton(props: {
 				/>
 			</Show>
 
-			{/* 引用リポストモーダル */}
 			<QuoteRepostModal
 				originalPost={props.originalPost}
 				isOpen={showQuoteModal}
 				onClose={() => setShowQuoteModal(false)}
 				onSuccess={() => {
-					// 引用リポスト成功時の処理
 					console.log("引用リポストが完了しました");
 				}}
 			/>

@@ -9,6 +9,5 @@ export const createFeed = async (docs: rawDocument[]) => {
 			return record;
 		}),
 	);
-
 	return feed.filter((doc) => doc !== null && doc !== undefined);
 };

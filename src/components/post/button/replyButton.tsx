@@ -1,7 +1,7 @@
 import { AiOutlineComment } from "solid-icons/ai";
 import { createSignal } from "solid-js";
-import type { profileType } from "../../../backend/schema/Profile";
-import ReplyModal from "./replyModal";
+import type { profileType } from "../../../../backend/schema/Profile";
+import ReplyModal from "../modal/replyModal";
 
 export default function ReplyButton(props: {
 	target: string;
@@ -27,8 +27,6 @@ export default function ReplyButton(props: {
 				<AiOutlineComment size={16} />
 				<span class="text-sm">リプライ</span>
 			</button>
-
-			{/* リプライモーダル */}
 			<ReplyModal
 				originalPost={props.originalPost}
 				isOpen={showReplyModal}

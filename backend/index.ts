@@ -44,7 +44,6 @@ const getPostRoute = app.get(
 		//ユーザーリポジトリからデータを取得
 		try {
 			const record = await getEvent(json);
-
 			return c.json(record);
 		} catch (e) {
 			console.log(e);
@@ -84,7 +83,6 @@ const feedRoute = app.get(
 		try {
 			const documents =
 				publickey || event ? await searchDocs(query) : await getAllDocs();
-
 			//eventをfeedにして返す
 			if (documents) {
 				const feed = await createFeed(documents);
@@ -111,16 +109,13 @@ const eventRoute = app
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
-
 			return parsed.data;
 		}),
 		async (c) => {
 			const { id } = c.req.valid("query");
-
 			//eventを検索
 			try {
 				const record = await getDoc(id);
-
 				if (record) {
 					return c.json(record);
 				} else {
@@ -140,12 +135,10 @@ const eventRoute = app
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
-
 			return parsed.data;
 		}),
 		async (c) => {
 			const json = c.req.valid("json");
-
 			try {
 				const data = await putDoc(json);
 				return c.json(data);
@@ -163,12 +156,10 @@ const eventRoute = app
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
-
 			return parsed.data;
 		}),
 		async (c) => {
 			const json = c.req.valid("json");
-
 			//ユーザーリポジトリからデータを取得
 			try {
 				await deleteDoc(json);
@@ -191,7 +182,6 @@ const profileRoute = app
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
-
 			return parsed.data;
 		}),
 		async (c) => {
@@ -200,7 +190,6 @@ const profileRoute = app
 			try {
 				//orbitdbからprofileの更新eventを探す
 				const doc = await findProfileDoc(publickey);
-
 				if (doc) {
 					return c.json(doc);
 				} else {
@@ -220,12 +209,10 @@ const profileRoute = app
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
-
 			return parsed.data;
 		}),
 		async (c) => {
 			const json = c.req.valid("json");
-
 			try {
 				const doc = await updateUser(json);
 				if (doc) {

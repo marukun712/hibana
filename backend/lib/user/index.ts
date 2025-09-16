@@ -13,14 +13,11 @@ export const updateUser = async (profile: profileType) => {
 		console.error("Profile schema validation failed:", parsedProfile.error);
 		throw new Error("Validation failed");
 	}
-
 	const crypto = new CryptoUtils(calculateHash);
 	const verify = await crypto.verifyUserDoc(parsedProfile.data);
-
 	if (verify) {
 		const client = await getClient();
 		const result = await client.add(JSON.stringify(profile, null, 2));
-
 		const document: documentType = {
 			_id: profile.id,
 			event: "event.profile",
@@ -28,12 +25,10 @@ export const updateUser = async (profile: profileType) => {
 			publickey: profile.publickey,
 			timestamp: new Date().toISOString(),
 		};
-
 		const parsed = documentSchema.safeParse(document);
 		if (parsed.success) {
 			await writeDoc(document);
 		}
-
 		return document;
 	} else {
 		throw new Error("Verify failed");
@@ -41,33 +36,18 @@ export const updateUser = async (profile: profileType) => {
 };
 
 //orbitdbからプロフィール更新イベントを探す
-export const findProfileDoc = async (
-	publickey: string,
-): Promise<profileType | null> => {
+export const findProfileDoc = async (publickey: string) => {
 	const data = await searchDocs({ publickey, event: "event.profile" });
-
 	if (data[0]?.value.target) {
-		const doc = await resolveIpfsDoc(data[0].value.target);
-
-		const parsed = profileSchema.safeParse(doc);
-
-		if (parsed.success) {
-			return parsed.data;
-		} else {
-			console.error("Profile schema validation failed:", parsed.error);
-			throw new Error("Validation failed");
-		}
+		return await resolveUserDoc(data[0].value.target);
 	} else {
 		throw new Error("User is not found");
 	}
 };
 
-//ipfs上の署名済みjsonドキュメントを解決する
-export const resolveIpfsDoc = async (
-	cid: string,
-): Promise<Record<string, unknown> | null> => {
+//ipfs上の署名済みuserドキュメントを解決する
+export const resolveUserDoc = async (cid: string) => {
 	const client = await getClient();
-
 	const raw = client.cat(CID.parse(cid));
 	const chunks = [];
 	for await (const chunk of raw) {
@@ -75,12 +55,16 @@ export const resolveIpfsDoc = async (
 	}
 	const buffer = Buffer.concat(chunks).toString("utf-8");
 	const doc = JSON.parse(buffer);
-
 	const crypto = new CryptoUtils(calculateHash);
 	const verify = await crypto.verifyUserDoc(doc);
-
 	if (verify) {
-		return doc;
+		const parsed = profileSchema.safeParse(doc);
+		if (parsed.success) {
+			return parsed.data;
+		} else {
+			console.error("Profile schema validation failed:", parsed.error);
+			throw new Error("Validation failed");
+		}
 	} else {
 		throw new Error("Verify failed");
 	}
@@ -88,7 +72,6 @@ export const resolveIpfsDoc = async (
 
 export const isUserPublickey = async (publickey: string) => {
 	const data = await searchDocs({ publickey, event: "event.profile" });
-
 	if (data.length > 0) {
 		return true;
 	} else {

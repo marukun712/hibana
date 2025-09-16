@@ -15,7 +15,6 @@ export default function PostWithRepliesComponent(props: {
 
 	function renderPost(post: PostWithReplies, currentDepth: number) {
 		const data = post.message as EventContent;
-
 		if (post.event === "event.repost" && post.target) {
 			return (
 				<RepostedPost
@@ -82,8 +81,6 @@ export default function PostWithRepliesComponent(props: {
 	return (
 		<div>
 			{renderPost(props.post, depth)}
-
-			{/* ネストしたリプライを表示 */}
 			{props.post.replies &&
 				props.post.replies.length > 0 &&
 				depth < maxDepth && (
@@ -95,8 +92,6 @@ export default function PostWithRepliesComponent(props: {
 						</For>
 					</div>
 				)}
-
-			{/* 最大深度に達した場合の表示 */}
 			{props.post.replies &&
 				props.post.replies.length > 0 &&
 				depth >= maxDepth && (

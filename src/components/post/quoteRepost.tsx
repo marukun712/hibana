@@ -28,7 +28,6 @@ export default function QuoteRepost(props: {
 				<span>{props.quotedAt}</span>
 			</div>
 
-			{/* 引用コメント */}
 			<div class="flex gap-3 mb-4">
 				<div class="avatar">
 					<div class="w-12 h-12 rounded-full">
@@ -51,7 +50,6 @@ export default function QuoteRepost(props: {
 				</div>
 			</div>
 
-			{/* 引用された元の投稿 */}
 			<div class="ml-6 border border-base-300 rounded-lg overflow-hidden">
 				<Post
 					id={props.originalPost.id}

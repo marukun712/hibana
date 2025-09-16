@@ -13,12 +13,10 @@ export function buildReplyTree(
 	const postMap = new Map<string, PostWithReplies>();
 	const rootPosts: PostWithReplies[] = [];
 
-	// まず全ての投稿をマップに格納
 	posts.forEach((post) => {
 		postMap.set(post.id, { ...post, replies: [] });
 	});
 
-	// リプライ関係を構築
 	posts.forEach((post) => {
 		const postWithReplies = postMap.get(post.id);
 		if (!postWithReplies) return;
@@ -30,16 +28,13 @@ export function buildReplyTree(
 				parentPost.replies = parentPost.replies || [];
 				parentPost.replies.push(postWithReplies);
 			} else {
-				// 親投稿が見つからない場合はルートレベルに表示
 				rootPosts.push(postWithReplies);
 			}
 		} else {
-			// 通常の投稿、リポスト、引用リポストはルートレベル
 			rootPosts.push(postWithReplies);
 		}
 	});
 
-	// リプライを時間順でソート
 	function sortReplies(post: PostWithReplies) {
 		if (post.replies && post.replies.length > 0) {
 			post.replies.sort(
