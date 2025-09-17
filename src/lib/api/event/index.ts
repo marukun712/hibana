@@ -2,7 +2,7 @@ import { hc } from "hono/client";
 import type { eventRouteType, feedRouteType } from "../../../../backend";
 import { CryptoUtils } from "../../../../utils/crypto";
 import { calculateHash } from "../hash";
-import { getCurrentUser } from "../users";
+import { getCurrentUser, getFollows } from "../users";
 
 export const postEvent = async (
 	event: string,
@@ -100,6 +100,22 @@ export const getUserPosts = async (publickey: string) => {
 	} else {
 		throw new Error("取得中にエラーが発生しました。");
 	}
+};
+
+export const getFollowingPosts = async (publickey: string) => {
+	const follows = await getFollows(publickey);
+	const posts = await Promise.all(
+		follows.map((follow) => {
+			if (!follow.target) return [];
+			return getUserPosts(follow.target.publickey);
+		}),
+	);
+	return posts
+		.flat()
+		.sort(
+			(a, b) =>
+				new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+		);
 };
 
 export const isPinned = async (publickey: string, target: string) => {

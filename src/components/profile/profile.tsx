@@ -2,7 +2,7 @@ import { useSearchParams } from "@solidjs/router";
 import { createSignal, onMount, Show } from "solid-js";
 import { getFollowers, getFollows, getProfile } from "~/lib/api/users";
 import type { profileType } from "../../../backend/schema/Profile";
-import Feed from "../post/feed";
+import Feed from "../feed/feed";
 import Loading from "../ui/loading";
 import FollowButton from "./button/followButton";
 

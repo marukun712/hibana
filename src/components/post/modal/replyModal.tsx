@@ -42,7 +42,8 @@ export default function ReplyModal(props: {
 	return (
 		<Show when={props.isOpen()}>
 			<div class="fixed inset-0 z-50 flex items-center justify-center">
-				<div
+				<button
+					type="submit"
 					class="fixed inset-0 bg-black bg-opacity-50"
 					onClick={handleClose}
 					onKeyDown={(e) => {
@@ -50,7 +51,6 @@ export default function ReplyModal(props: {
 							handleClose();
 						}
 					}}
-					role="button"
 					tabIndex={0}
 					aria-label="モーダルを閉じる"
 				/>

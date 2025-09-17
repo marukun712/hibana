@@ -1,6 +1,5 @@
-import { debounce } from "@solid-primitives/scheduled";
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { checkRepostStatus, repostPost, unrepostPost } from "~/lib/api/social";
 import type { profileType } from "../../../../backend/schema/Profile";
 import QuoteRepostModal from "../modal/quoteRepostModal";
@@ -16,27 +15,23 @@ export default function RepostButton(props: {
 }) {
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);
-	const [showMenu, setShowMenu] = createSignal(false);
 	const [showQuoteModal, setShowQuoteModal] = createSignal(false);
 
 	async function repost() {
-		const eventId = await repostPost(props.originalPost.id);
-		if (eventId) {
-			setReposted(true);
-			setRepostId(eventId);
+		if (reposted()) {
+			const id = repostId();
+			if (!id) return;
+			await unrepostPost(id);
+			setReposted(false);
+			setRepostId(null);
+		} else {
+			const eventId = await repostPost(props.originalPost.id);
+			if (eventId) {
+				setReposted(true);
+				setRepostId(eventId);
+			}
 		}
 	}
-
-	async function unrepost() {
-		const id = repostId();
-		if (!id) return;
-		await unrepostPost(id);
-		setReposted(false);
-		setRepostId(null);
-	}
-
-	const repostDebounced = debounce(repost, 300);
-	const unrepostDebounced = debounce(unrepost, 300);
 
 	onMount(async () => {
 		const result = await checkRepostStatus(props.originalPost.id);
@@ -47,70 +42,45 @@ export default function RepostButton(props: {
 	});
 
 	return (
-		<div class="relative">
+		<div class="dropdown dropdown-end">
 			<button
+				tabindex={0}
 				type="button"
-				onClick={(e) => {
-					e.preventDefault();
-					if (reposted()) {
-						unrepostDebounced();
-					} else {
-						setShowMenu(!showMenu());
-					}
-				}}
-				class={`btn btn-ghost btn-sm gap-1 sm:gap-2 ${
+				class={`btn btn-ghost btn-sm gap-2 ${
 					reposted() ? "text-success" : "text-base-content/60"
 				} hover:text-success`}
 			>
 				<AiOutlineRetweet size={16} />
-				<span class="text-xs sm:text-sm hidden sm:inline">
+				<span class="hidden sm:inline text-sm">
 					{reposted() ? "リポスト済み" : "リポスト"}
 				</span>
 			</button>
 
-			<Show when={showMenu()}>
-				<div class="dropdown-content menu bg-base-100 border border-base-300 rounded-lg shadow-lg z-10 w-48">
+			<ul
+				tabindex={0}
+				class="dropdown-content menu p-2 shadow bg-base-100 border border-base-300 rounded-lg w-48 z-10"
+			>
+				<li>
 					<button
-						type="button"
-						onClick={(e) => {
-							e.preventDefault();
-							repostDebounced();
-							setShowMenu(false);
-						}}
-						class="w-full justify-start gap-2"
+						type="submit"
+						onClick={repost}
+						class="flex gap-2 items-center"
 					>
 						<AiOutlineRetweet size={16} />
-						<span>リポスト</span>
+						<span>{reposted() ? "リポスト解除" : "リポスト"}</span>
 					</button>
+				</li>
+				<li>
 					<button
-						type="button"
-						onClick={(e) => {
-							e.preventDefault();
-							setShowQuoteModal(true);
-							setShowMenu(false);
-						}}
-						class="w-full justify-start gap-2"
+						type="submit"
+						onClick={() => setShowQuoteModal(true)}
+						class="flex gap-2 items-center"
 					>
 						<AiOutlineEdit size={16} />
 						<span>引用リポスト</span>
 					</button>
-				</div>
-			</Show>
-
-			<Show when={showMenu()}>
-				<div
-					class="fixed inset-0 z-0"
-					onClick={() => setShowMenu(false)}
-					onKeyDown={(e) => {
-						if (e.key === "Escape") {
-							setShowMenu(false);
-						}
-					}}
-					role="button"
-					tabIndex={0}
-					aria-label="メニューを閉じる"
-				/>
-			</Show>
+				</li>
+			</ul>
 
 			<QuoteRepostModal
 				originalPost={props.originalPost}
