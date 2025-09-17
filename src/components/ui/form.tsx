@@ -16,16 +16,16 @@ export default function PostForm() {
 				e.preventDefault();
 				post(text());
 			}}
-			class="gap-3 flex justify-center py-8"
+			class="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center py-4 sm:py-8 px-2 sm:px-4"
 		>
 			<input
 				type="text"
-				class="input input-bordered w-full max-w-md"
+				class="input input-bordered w-full sm:flex-1 max-w-full sm:max-w-md md:max-w-lg"
 				placeholder="Message..."
 				value={text()}
 				onChange={(e) => setText(e.target.value)}
 			/>
-			<button class="btn btn-primary" type="submit">
+			<button class="btn btn-primary w-full sm:w-auto px-6" type="submit">
 				投稿
 			</button>
 		</form>

@@ -45,12 +45,14 @@ export default function PinButton(props: { target: string }) {
 					postDebounced();
 				}
 			}}
-			class={`btn btn-sm btn-ghost gap-1 ${
+			class={`btn btn-ghost btn-sm gap-1 sm:gap-2 ${
 				pinned() ? "text-primary" : "text-base-content/60"
 			} hover:text-primary`}
 		>
 			{pinned() ? <AiFillBook size={16} /> : <AiOutlineBook size={16} />}
-			<span class="text-sm">{pinned() ? "ピン済み" : "ピン"}</span>
+			<span class="text-xs sm:text-sm hidden sm:inline">
+				{pinned() ? "ピン済み" : "ピン"}
+			</span>
 		</button>
 	);
 }

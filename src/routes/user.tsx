@@ -1,4 +1,4 @@
-import ProfileCard from "~/components/profile/profileCard";
+import ProfileCard from "~/components/profile/profile";
 
 export default function User() {
 	return (

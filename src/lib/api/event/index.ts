@@ -37,7 +37,6 @@ export const deleteEvent = async (id: string) => {
 export const getPosts = async () => {
 	const user = await getCurrentUser();
 	const client = hc<feedRouteType>(user.repository);
-
 	const postsRes = await client.feed.$get({ query: { event: "event.post" } });
 	const posts = await postsRes.json();
 	const repostsRes = await client.feed.$get({
@@ -52,7 +51,6 @@ export const getPosts = async () => {
 		query: { event: "event.reply" },
 	});
 	const replies = await repliesRes.json();
-
 	if (
 		!("error" in posts) &&
 		!("error" in reposts) &&
@@ -72,12 +70,33 @@ export const getPosts = async () => {
 export const getUserPosts = async (publickey: string) => {
 	const user = await getCurrentUser();
 	const client = hc<feedRouteType>(user.repository);
-	const res = await client.feed.$get({
+	const postsRes = await client.feed.$get({
 		query: { event: "event.post", publickey },
 	});
-	const feed = await res.json();
-	if (!("error" in feed)) {
-		return feed;
+	const posts = await postsRes.json();
+	const repostsRes = await client.feed.$get({
+		query: { event: "event.repost", publickey },
+	});
+	const reposts = await repostsRes.json();
+	const quoteRepostsRes = await client.feed.$get({
+		query: { event: "event.quote_repost", publickey },
+	});
+	const quoteReposts = await quoteRepostsRes.json();
+	const repliesRes = await client.feed.$get({
+		query: { event: "event.reply", publickey },
+	});
+	const replies = await repliesRes.json();
+	if (
+		!("error" in posts) &&
+		!("error" in reposts) &&
+		!("error" in quoteReposts) &&
+		!("error" in replies)
+	) {
+		const allItems = [...posts, ...reposts, ...quoteReposts, ...replies].sort(
+			(a, b) =>
+				new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+		);
+		return allItems;
 	} else {
 		throw new Error("取得中にエラーが発生しました。");
 	}

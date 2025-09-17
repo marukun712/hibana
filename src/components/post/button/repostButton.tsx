@@ -58,16 +58,18 @@ export default function RepostButton(props: {
 						setShowMenu(!showMenu());
 					}
 				}}
-				class={`btn btn-sm btn-ghost gap-1 ${
+				class={`btn btn-ghost btn-sm gap-1 sm:gap-2 ${
 					reposted() ? "text-success" : "text-base-content/60"
 				} hover:text-success`}
 			>
 				<AiOutlineRetweet size={16} />
-				<span class="text-sm">{reposted() ? "リポスト済み" : "リポスト"}</span>
+				<span class="text-xs sm:text-sm hidden sm:inline">
+					{reposted() ? "リポスト済み" : "リポスト"}
+				</span>
 			</button>
 
 			<Show when={showMenu()}>
-				<div class="absolute bottom-full left-0 mb-2 bg-base-100 border border-base-300 rounded-lg shadow-lg z-10 min-w-48">
+				<div class="dropdown-content menu bg-base-100 border border-base-300 rounded-lg shadow-lg z-10 w-48">
 					<button
 						type="button"
 						onClick={(e) => {
@@ -75,7 +77,7 @@ export default function RepostButton(props: {
 							repostDebounced();
 							setShowMenu(false);
 						}}
-						class="w-full px-4 py-2 text-left hover:bg-base-200 flex items-center gap-2 rounded-t-lg"
+						class="w-full justify-start gap-2"
 					>
 						<AiOutlineRetweet size={16} />
 						<span>リポスト</span>
@@ -87,7 +89,7 @@ export default function RepostButton(props: {
 							setShowQuoteModal(true);
 							setShowMenu(false);
 						}}
-						class="w-full px-4 py-2 text-left hover:bg-base-200 flex items-center gap-2 rounded-b-lg"
+						class="w-full justify-start gap-2"
 					>
 						<AiOutlineEdit size={16} />
 						<span>引用リポスト</span>

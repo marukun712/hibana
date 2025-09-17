@@ -18,14 +18,11 @@ export default function Reply(props: {
 }) {
 	const depth = props.depth || 0;
 	const maxDepth = 3;
-	const indentClass =
-		depth > 0
-			? `ml-${Math.min(depth * 4, maxDepth * 4)} border-l border-base-300 pl-4`
-			: "";
+	const indentClass = depth > 0 ? "ml-4 border-l border-base-300 pl-4" : "";
 
 	return (
 		<div
-			class={`bg-base-100 rounded-xl border border-base-300 p-4 mb-4 hover:shadow-md transition-all ${indentClass}`}
+			class={`card bg-base-100 border border-base-300 p-4 mb-4 hover:shadow-md transition-shadow ${indentClass}`}
 		>
 			{depth > 0 && (
 				<div class="flex items-center gap-2 text-sm text-base-content/60 mb-3">
@@ -34,7 +31,7 @@ export default function Reply(props: {
 				</div>
 			)}
 
-			<div class="flex gap-3">
+			<div class="flex gap-4">
 				<div class="avatar">
 					<div class="w-12 h-12 rounded-full">
 						<a href={`/user?publickey=${props.user.publickey}`}>
@@ -52,8 +49,8 @@ export default function Reply(props: {
 						</a>
 						<span class="text-sm text-base-content/60">{props.postedAt}</span>
 					</div>
-					<p class="text-base leading-relaxed mb-3">{props.text}</p>
-					<div class="flex items-center gap-6">
+					<p class="mb-4">{props.text}</p>
+					<div class="flex items-center gap-4">
 						{depth < maxDepth && (
 							<ReplyButton
 								target={props.id}

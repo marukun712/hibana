@@ -1,5 +1,5 @@
-import Feed from "~/components/post/feed";
-import PostForm from "~/components/post/form";
+import Feed from "~/components/feed/feed";
+import PostForm from "~/components/ui/form";
 
 export default function Index() {
 	return (

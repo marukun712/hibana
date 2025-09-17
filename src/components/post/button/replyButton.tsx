@@ -22,10 +22,10 @@ export default function ReplyButton(props: {
 					e.preventDefault();
 					setShowReplyModal(true);
 				}}
-				class="btn btn-sm btn-ghost gap-1 text-base-content/60 hover:text-primary"
+				class="btn btn-ghost btn-sm gap-1 sm:gap-2 text-base-content/60 hover:text-primary"
 			>
 				<AiOutlineComment size={16} />
-				<span class="text-sm">リプライ</span>
+				<span class="text-xs sm:text-sm">リプライ</span>
 			</button>
 			<ReplyModal
 				originalPost={props.originalPost}

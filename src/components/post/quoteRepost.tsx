@@ -15,8 +15,8 @@ export default function QuoteRepost(props: {
 	quotePostId: string;
 }) {
 	return (
-		<div class="bg-base-100 rounded-xl border border-base-300 p-4 mb-4 hover:shadow-md transition-all">
-			<div class="flex items-center gap-2 mb-3 text-sm text-base-content/60">
+		<div class="card bg-base-100 border border-base-300 p-4 mb-4 hover:shadow-md transition-shadow">
+			<div class="flex items-center gap-2 mb-4 text-sm text-base-content/60">
 				<AiOutlineEdit size={16} />
 				<a
 					href={`/user?publickey=${props.quoteUser.publickey}`}
@@ -28,7 +28,7 @@ export default function QuoteRepost(props: {
 				<span>{props.quotedAt}</span>
 			</div>
 
-			<div class="flex gap-3 mb-4">
+			<div class="flex gap-4 mb-4">
 				<div class="avatar">
 					<div class="w-12 h-12 rounded-full">
 						<a href={`/user?publickey=${props.quoteUser.publickey}`}>
@@ -46,11 +46,11 @@ export default function QuoteRepost(props: {
 						</a>
 						<span class="text-sm text-base-content/60">{props.quotedAt}</span>
 					</div>
-					<p class="text-base leading-relaxed">{props.quoteText}</p>
+					<p>{props.quoteText}</p>
 				</div>
 			</div>
 
-			<div class="ml-6 border border-base-300 rounded-lg overflow-hidden">
+			<div class="ml-4 border border-base-300 rounded-lg overflow-hidden">
 				<Post
 					id={props.originalPost.id}
 					text={props.originalPost.text}
