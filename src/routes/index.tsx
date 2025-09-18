@@ -1,13 +1,11 @@
 import { createSignal } from "solid-js";
 import Feed from "~/components/feed/feed";
-import PostForm from "~/components/form";
 
 export default function Index() {
 	const [feedType, setFeedType] = createSignal<"all" | "following">("all");
 
 	return (
 		<div>
-			<PostForm />
 			<div class="flex justify-center my-4">
 				<div class="tabs tabs-boxed">
 					<button

@@ -43,10 +43,7 @@ export default function QuoteRepost(props: {
 					<p>{props.quote.message.content}</p>
 				</div>
 			</div>
-
-			<div class="ml-4 border border-base-300 rounded-lg overflow-hidden">
-				<Post post={props.originalPost} />
-			</div>
+			<Post post={props.originalPost} />
 		</div>
 	);
 }
