@@ -37,7 +37,6 @@
 		"@biomejs/biome": "2.2.4",
 		"@tailwindcss/vite": "^4.0.7",
 		"oxlint": "^1.14.0",
-		"prettier": "^3.6.2",
 		"tailwindcss": "^4.0.7"
 	},
 	"engines": {

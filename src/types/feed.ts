@@ -1,37 +1,28 @@
-export interface ProfileType {
-	id: string;
-	publickey: string;
-	signature: string;
-	username: string;
-	icon: string;
-	description: string;
-	repository: string;
-	updatedAt: string;
-}
+import type { profileType } from "../../backend/schema/Profile";
 
 export interface PostData {
 	id: string;
-	text: string;
-	postedAt: string;
-	user: ProfileType;
+	message: {
+		content: string;
+	};
+	timestamp: string;
+	user: profileType;
 }
 
 export interface BaseEvent {
 	id: string;
 	publickey: string;
 	signature: string;
-	event: string;
 	timestamp: string;
 	message: { [key: string]: unknown };
-	user: ProfileType;
-	target: string | PostData | ProfileType | null;
+	user: profileType;
+	target: PostData | profileType | null;
 }
 
 export interface PostEvent extends BaseEvent {
 	event: "event.post";
 	message: {
 		content: string;
-		[key: string]: unknown;
 	};
 	target: null;
 }
@@ -40,7 +31,6 @@ export interface ReplyEvent extends BaseEvent {
 	event: "event.reply";
 	message: {
 		content: string;
-		[key: string]: unknown;
 	};
 	target: PostData;
 }
@@ -54,7 +44,6 @@ export interface QuoteRepostEvent extends BaseEvent {
 	event: "event.quote_repost";
 	message: {
 		content: string;
-		[key: string]: unknown;
 	};
 	target: PostData;
 }

@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import Feed from "~/components/feed/feed";
-import PostForm from "~/components/ui/form";
+import PostForm from "~/components/form";
 
 export default function Index() {
 	const [feedType, setFeedType] = createSignal<"all" | "following">("all");

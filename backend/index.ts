@@ -66,10 +66,13 @@ const feedRoute = app.get(
 		return parsed.data;
 	}),
 	async (c) => {
-		const { publickey, event, target } = c.req.valid("query");
+		const { id, publickey, event, target } = c.req.valid("query");
 
 		//クエリを構築
 		const query: Record<string, string> = {};
+		if (id) {
+			query.id = id;
+		}
 		if (publickey) {
 			query.publickey = publickey;
 		}

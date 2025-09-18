@@ -1,17 +1,12 @@
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
 import { checkRepostStatus, repostPost, unrepostPost } from "~/lib/api/social";
-import type { profileType } from "../../../../backend/schema/Profile";
+import type { PostData } from "~/types/feed";
 import QuoteRepostModal from "../modal/quoteRepostModal";
 
 export default function RepostButton(props: {
 	target: string;
-	originalPost: {
-		id: string;
-		text: string;
-		postedAt: string;
-		user: profileType;
-	};
+	originalPost: PostData;
 }) {
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);

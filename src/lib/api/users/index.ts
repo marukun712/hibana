@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import type { feedRouteType, profileRouteType } from "../../../../backend";
+import type { profileRouteType } from "../../../../backend";
 import { CryptoUtils } from "../../../../utils/crypto";
 import { calculateHash } from "../hash";
 
@@ -38,46 +38,4 @@ export const getCurrentUser = async () => {
 	const publickey = await window.nostr.getPublicKey();
 	const profile = await getProfile(publickey);
 	return profile;
-};
-
-export const getFollows = async (publickey: string) => {
-	const user = await getCurrentUser();
-	const client = hc<feedRouteType>(user.repository);
-	const res = await client.feed.$get({
-		query: { event: "event.follow", publickey },
-	});
-	const feed = await res.json();
-	if (!("error" in feed)) {
-		return feed;
-	} else {
-		throw new Error("取得中にエラーが発生しました。");
-	}
-};
-
-export const getFollowers = async (publickey: string) => {
-	const user = await getCurrentUser();
-	const client = hc<feedRouteType>(user.repository);
-	const res = await client.feed.$get({
-		query: { event: "event.follow", target: publickey },
-	});
-	const feed = await res.json();
-	if (!("error" in feed)) {
-		return feed;
-	} else {
-		throw new Error("取得中にエラーが発生しました。");
-	}
-};
-
-export const isFollowed = async (publickey: string, target: string) => {
-	const user = await getCurrentUser();
-	const client = hc<feedRouteType>(user.repository);
-	const res = await client.feed.$get({
-		query: { event: "event.follow", publickey, target },
-	});
-	const json = await res.json();
-	if (!("error" in json) && json.length > 0) {
-		return { id: json[0].id, isFollowed: true };
-	} else {
-		return { id: null, isFollowed: false };
-	}
 };

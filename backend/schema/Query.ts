@@ -8,6 +8,7 @@ export const getRequestSchema = z.object({
 export type getSchemaType = z.infer<typeof getRequestSchema>;
 
 export const feedRequestSchema = z.object({
+	id: z.string().optional(),
 	publickey: z.string().optional(),
 	event: z.string().optional(),
 	target: z.string().optional(),

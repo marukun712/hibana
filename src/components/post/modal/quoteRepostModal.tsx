@@ -1,15 +1,10 @@
 import { AiOutlineClose } from "solid-icons/ai";
 import { createSignal, Show } from "solid-js";
 import { createQuoteRepost } from "~/lib/api/posts";
-import type { profileType } from "../../../../backend/schema/Profile";
+import type { PostData } from "~/types/feed";
 
 export default function QuoteRepostModal(props: {
-	originalPost: {
-		id: string;
-		text: string;
-		postedAt: string;
-		user: profileType;
-	};
+	originalPost: PostData;
 	isOpen: () => boolean;
 	onClose: () => void;
 	onSuccess: () => void;
@@ -88,11 +83,11 @@ export default function QuoteRepostModal(props: {
 											{props.originalPost.user.username}
 										</span>
 										<span class="text-xs text-base-content/60">
-											{props.originalPost.postedAt}
+											{props.originalPost.timestamp}
 										</span>
 									</div>
 									<p class="text-sm text-base-content/80">
-										{props.originalPost.text}
+										{props.originalPost.message.content}
 									</p>
 								</div>
 							</div>
