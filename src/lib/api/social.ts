@@ -1,6 +1,7 @@
 import { hc } from "hono/client";
 import type { eventRouteType, feedRouteType } from "../../../backend";
 import { CryptoUtils } from "../../../utils/crypto";
+import { deleteEvent } from "./event";
 import { calculateHash } from "./hash";
 import { getCurrentUser } from "./users";
 
@@ -24,14 +25,6 @@ const postEvent = async (
 			throw new Error("投稿中にエラーが発生しました。");
 		}
 	}
-};
-
-const deleteEvent = async (id: string) => {
-	const user = await getCurrentUser();
-	const client = hc<eventRouteType>(user.repository);
-	const crypto = new CryptoUtils(calculateHash);
-	const signature = await crypto.signMessage(id);
-	await client.event.$delete({ json: { target: id, signature, content: id } });
 };
 
 export const followUser = async (targetId: string) => {

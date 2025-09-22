@@ -49,7 +49,7 @@ export class CryptoUtils {
 		event: string,
 		timestamp: string,
 		message: { [key: string]: unknown },
-	): Promise<eventType | null> {
+	): Promise<eventType> {
 		const publickey = await window.nostr.getPublicKey();
 		if (!publickey) {
 			throw new Error("公開鍵が不正です");
@@ -91,7 +91,7 @@ export class CryptoUtils {
 		description: string,
 		repository: string,
 		updatedAt: string,
-	): Promise<profileType | null> {
+	): Promise<profileType> {
 		const json = JSON.stringify({
 			username,
 			icon,

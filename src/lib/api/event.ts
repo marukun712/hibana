@@ -29,7 +29,10 @@ export const postEvent = async (
 export const deleteEvent = async (id: string) => {
 	const user = await getCurrentUser();
 	const client = hc<eventRouteType>(user.repository);
+	const timestamp = new Date().toISOString();
 	const crypto = new CryptoUtils(calculateHash);
-	const signature = await crypto.signMessage(id);
-	await client.event.$delete({ json: { target: id, signature, content: id } });
+	const message = await crypto.createSecureMessage("event.delete", timestamp, {
+		target: id,
+	});
+	await client.event.$delete({ json: message });
 };
