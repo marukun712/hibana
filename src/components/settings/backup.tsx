@@ -12,7 +12,7 @@ export default function Backup() {
 	});
 
 	return (
-		<div class="space-y-4">
+		<div class="space-y-4 my-12">
 			<div class="space-y-4">
 				<h1 class="font-bold text-2xl">リポジトリをバックアップ</h1>
 				<p class="text-sm">

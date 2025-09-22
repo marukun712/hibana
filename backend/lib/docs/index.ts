@@ -9,8 +9,11 @@ import {
 	type documentType,
 	searchResult,
 } from "../../schema/Document.ts";
-import { eventSchema, type eventType } from "../../schema/Event.ts";
-import type { deleteSchemaType } from "../../schema/Query.ts";
+import {
+	deleteEventSchema,
+	eventSchema,
+	type eventType,
+} from "../../schema/Event.ts";
 import { calculateHash } from "../hash.ts";
 import { getDB } from "../instances/db.ts";
 import {
@@ -72,63 +75,51 @@ export const resolveRepositoryDoc = async (document: documentType) => {
 	const data = await client.get.$get({
 		query: { id: document._id, publickey: document.publickey },
 	});
-	if (data.status === 200) {
-		const json = await data.json();
-		const parsedEvent = eventSchema.safeParse(json);
-		if (!parsedEvent.success) {
-			console.error("Event schema validation failed:", parsedEvent.error);
-			return null;
-		}
-		const event = parsedEvent.data;
-		//データの検証
-		const crypto = new CryptoUtils(calculateHash);
-		const verify = await crypto.verifySecureMessage(event);
-		if (!verify) {
-			return null;
-		}
-		//投稿者のプロフィール付きで返す
-		return { ...event, user: doc };
-	} else {
+	if (data.status !== 200) return null;
+	const json = await data.json();
+	const parsedEvent = eventSchema.safeParse(json);
+	if (!parsedEvent.success) {
+		console.error("Event schema validation failed:", parsedEvent.error);
 		return null;
 	}
+	const event = parsedEvent.data;
+	//データの検証
+	const crypto = new CryptoUtils(calculateHash);
+	const verify = await crypto.verifySecureMessage(event);
+	if (!verify) {
+		return null;
+	}
+	//投稿者のプロフィール付きで返す
+	return { ...event, user: doc };
 };
 
 export const getDoc = async (id: string) => {
 	const docs = await searchDocs({ _id: id });
-	if (docs[0]) {
-		const event = docs[0].value;
-		//eventを解決
-		const record = await resolveRepositoryDoc(event);
-		if (record) {
-			if (event.target) {
-				//targetが有効な公開鍵(ユーザーを指していた)場合
-				if (await isUserPublickey(event.target)) {
-					//ユーザーをターゲットとする
-					const targetDoc = await findProfileDoc(event.target);
-					return { ...record, target: targetDoc };
-					//ターゲットがipfs上のファイルを指していた場合
-				} else if (isCID(event.target)) {
-					const targetDoc = await resolveUserDoc(event.target);
-					return { ...record, target: targetDoc };
-				} else {
-					const doc = await searchDocs({ _id: event.target });
-					if (!doc[0]) return null;
-					const targetDoc = doc[0].value;
-					//ドキュメントが指しているレコードをターゲットとする
-					const targetRecord = await resolveRepositoryDoc(targetDoc);
-					if (!targetRecord) return null;
-					return { ...record, target: targetRecord };
-				}
-			} else {
-				//targetがなければそのまま返す
-				return { ...record, target: null };
-			}
-		} else {
-			return null;
-		}
-	} else {
-		return null;
+	if (!docs[0]) return null;
+	const event = docs[0].value;
+	const record = await resolveRepositoryDoc(event);
+	if (!record) return null;
+	// target が存在しない場合
+	if (!event.target) {
+		return { ...record, target: null };
 	}
+	// target がユーザーの公開鍵の場合
+	if (await isUserPublickey(event.target)) {
+		const targetDoc = await findProfileDoc(event.target);
+		return { ...record, target: targetDoc };
+	}
+	// target が IPFS の CID の場合
+	if (isCID(event.target)) {
+		const targetDoc = await resolveUserDoc(event.target);
+		return { ...record, target: targetDoc };
+	}
+	// target が他のドキュメントIDの場合
+	const doc = await searchDocs({ _id: event.target });
+	if (!doc[0]) return null;
+	const targetDoc = doc[0].value;
+	const targetRecord = await resolveRepositoryDoc(targetDoc);
+	if (!targetRecord) return null;
+	return { ...record, target: targetRecord };
 };
 
 export const putDoc = async (event: eventType) => {
@@ -143,44 +134,51 @@ export const putDoc = async (event: eventType) => {
 	const message = event.message as { target?: string; [key: string]: unknown };
 	//target付きのイベント(pinやfollowなど)か判定
 	const target = message.target ? message.target : null;
-	if (verify) {
-		const document: documentType = {
-			_id: event.id,
-			event: event.event,
-			target,
-			publickey: event.publickey,
-			timestamp: event.timestamp,
-		};
-		const parsed = documentSchema.safeParse(document);
-		//orbitdbにeventを保存
-		if (parsed.success) {
-			await writeDoc(parsed.data);
-		}
-		//リポジトリにも保存
-		await putEvent(event);
-		return event;
-	} else {
-		throw new Error("Verify failed.");
+	if (!verify) throw new Error("Verify failed.");
+	const document: documentType = {
+		_id: event.id,
+		event: event.event,
+		target,
+		publickey: event.publickey,
+		timestamp: event.timestamp,
+	};
+	const parsed = documentSchema.safeParse(document);
+	//orbitdbにeventを保存
+	if (parsed.success) {
+		await writeDoc(parsed.data);
 	}
+	//リポジトリにも保存
+	await putEvent(event);
+	return event;
 };
 
-export const deleteDoc = async (data: deleteSchemaType) => {
-	const docs = await searchDocs({ _id: data.target });
-	if (docs[0]) {
-		const event = docs[0].value;
-		const crypto = new CryptoUtils(calculateHash);
-		//署名を検証して本人確認
-		const isValid = await crypto.verifySignature(
-			event.publickey,
-			data.signature,
-			data.content,
+export const deleteDoc = async (event: eventType) => {
+	const crypto = new CryptoUtils(calculateHash);
+	const verify = await crypto.verifySecureMessage(event);
+	const parsedEvent = eventSchema.safeParse(event);
+	if (!parsedEvent.success) {
+		console.error("Event schema validation failed:", parsedEvent.error);
+		throw new Error("Validation failed");
+	}
+	if (parsedEvent.data.event !== "event.delete") {
+		throw new Error("Invalid event type");
+	}
+	if (!verify) {
+		throw new Error("Verify failed.");
+	}
+	const parsedMessage = deleteEventSchema.safeParse(parsedEvent.data.message);
+	if (!parsedMessage.success) {
+		console.error(
+			"Delete event schema validation failed:",
+			parsedMessage.error,
 		);
-		if (isValid) {
-			deleteEvent({ id: data.target, publickey: event.publickey });
-		} else {
-			throw new Error("Verify failed.");
-		}
-	} else {
+		throw new Error("Validation failed");
+	}
+	const data = parsedMessage.data;
+	const docs = await searchDocs({ _id: data.target });
+	if (!docs[0]) {
 		throw new Error("Document is not found.");
 	}
+	const foundEvent = docs[0].value;
+	await deleteEvent({ id: data.target, publickey: foundEvent.publickey });
 };

@@ -22,10 +22,6 @@ export const profileRequestSchema = z.object({
 	publickey: z.string(),
 });
 
-export const deleteRequestSchema = z.object({
-	target: z.string(),
-	content: z.string(),
-	signature: z.string(),
+export const repoRequestSchema = z.object({
+	publickey: z.string(),
 });
-
-export type deleteSchemaType = z.infer<typeof deleteRequestSchema>;

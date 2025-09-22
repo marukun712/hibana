@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { validator } from "hono/validator";
-import { getEvent } from "./db/index.ts";
+import { getAllEvents, getEvent } from "./db/index.ts";
 import {
 	deleteDoc,
 	getAllDocs,
@@ -12,18 +12,20 @@ import {
 	searchDocs,
 } from "./lib/docs/index.ts";
 import { createFeed } from "./lib/feed/index.ts";
+import { migrateRepo } from "./lib/migrate/index.ts";
 import { findProfileDoc, updateUser } from "./lib/user/index.ts";
 import { eventSchema } from "./schema/Event.ts";
 import { profileSchema } from "./schema/Profile.ts";
 import {
-	deleteRequestSchema,
 	eventRequestSchema,
 	feedRequestSchema,
 	getRequestSchema,
 	profileRequestSchema,
+	repoRequestSchema,
 } from "./schema/Query.ts";
 
 const app = new Hono();
+const port = Number(process.env.PORT) || 8080;
 
 app.use(logger());
 //イベント解決用エンドポイント
@@ -35,12 +37,10 @@ const getPostRoute = app.get(
 		if (!parsed.success) {
 			return c.json({ error: "Invalid Schema." }, 400);
 		}
-
 		return parsed.data;
 	}),
 	async (c) => {
 		const json = c.req.valid("query");
-
 		//ユーザーリポジトリからデータを取得
 		try {
 			const record = await getEvent(json);
@@ -62,7 +62,6 @@ const feedRoute = app.get(
 		if (!parsed.success) {
 			return c.json({ error: "Invalid Schema." }, 400);
 		}
-
 		return parsed.data;
 	}),
 	async (c) => {
@@ -89,7 +88,6 @@ const feedRoute = app.get(
 			//eventをfeedにして返す
 			if (documents) {
 				const feed = await createFeed(documents);
-
 				return c.json(feed);
 			} else {
 				return c.json({ error: "Document is not found." }, 400);
@@ -155,7 +153,7 @@ const eventRoute = app
 	.delete(
 		"/event",
 		validator("json", (value, c) => {
-			const parsed = deleteRequestSchema.safeParse(value);
+			const parsed = eventSchema.safeParse(value);
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
@@ -231,9 +229,54 @@ const profileRoute = app
 	);
 export type profileRouteType = typeof profileRoute;
 
+app.use("/repo", cors());
+const repoRoute = app.get(
+	"/repo",
+	validator("query", (value, c) => {
+		const parsed = repoRequestSchema.safeParse(value);
+		if (!parsed.success) {
+			return c.json({ error: "Invalid Schema." }, 400);
+		}
+		return parsed.data;
+	}),
+	async (c) => {
+		const { publickey } = c.req.valid("query");
+		try {
+			const data = await getAllEvents(publickey);
+			return c.json(data);
+		} catch (e) {
+			console.log(e);
+			return c.json({ error: "An error has occurred." }, 500);
+		}
+	},
+);
+export type repoRouteType = typeof repoRoute;
+
+app.use("/migrate", cors());
+const migrateRoute = app.post(
+	"/migrate",
+	validator("json", (value, c) => {
+		const parsed = eventSchema.safeParse(value);
+		if (!parsed.success) {
+			return c.json({ error: "Invalid Schema." }, 400);
+		}
+		return parsed.data;
+	}),
+	async (c) => {
+		const json = c.req.valid("json");
+		try {
+			await migrateRepo(json);
+			return c.json({ success: true });
+		} catch (e) {
+			console.log(e);
+			return c.json({ error: "An error has occurred." }, 500);
+		}
+	},
+);
+export type migrateRouteType = typeof migrateRoute;
+
 serve({
 	fetch: app.fetch,
-	port: 8000,
+	port: port,
 });
-
-console.log("Server listening on port 8000");
+console.log(`Server listening on port ${port}`);
