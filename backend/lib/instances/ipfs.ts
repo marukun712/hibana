@@ -7,6 +7,6 @@ export const getClient = async () => {
 		return client;
 	}
 
-	client = create();
+	client = create(new URL("http://ipfs:5001"));
 	return client;
 };

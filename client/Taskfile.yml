@@ -1,0 +1,11 @@
+version: "3"
+
+tasks:
+  client:
+    cmds:
+      - task: logo
+      - npm run dev
+
+  logo:
+    cmds:
+      - npx oh-my-logo "hibana" sunset --filled

@@ -20,11 +20,13 @@ let db: Database<documentType> | null = null;
 const _address = "/orbitdb/zdpuAmMFMfBhYnJG3wQiWBEKcJe7axn6cKj57a786zdLuuXjC";
 
 const options = libp2pDefaults();
-if (options.addresses) {
-	options.addresses.listen = [`/ip4/0.0.0.0/tcp/4002`];
+if (options.addresses && process.env.ORBITDB_PORT) {
+	options.addresses.listen = [`/ip4/0.0.0.0/tcp/${process.env.ORBITDB_PORT}`];
 	if (process.env.GLOBAL_IP) {
 		options.addresses.announce = [`/ip4/${process.env.GLOBAL_IP}/tcp/4002`];
 	}
+} else {
+	throw new Error("ORBITDB_PORT must be set");
 }
 options.services.pubsub = gossipsub({ allowPublishToZeroTopicPeers: true });
 options.services.identify = identify();
@@ -36,24 +38,18 @@ export const getDB = async () => {
 	if (db) {
 		return db;
 	}
-
 	const libp2p = await createLibp2p(options);
-
 	const ipfs = await createHelia({ datastore, blockstore, libp2p });
 	const storage = await IPFSBlockStorage({ ipfs, pin: true });
 	const orbitdb = await createOrbitDB({ ipfs });
-
 	db = await orbitdb.open("hibana-db", {
 		Database: Documents({ storage, indexBy: "_id" }),
 		type: "documents",
 		AccessController: IPFSAccessController({ write: ["*"] }),
 	});
-
 	console.log(db.address);
-
 	db.events.on("join", async (peerId: string) => {
 		console.log(peerId);
 	});
-
 	return db;
 };

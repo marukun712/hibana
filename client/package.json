@@ -12,9 +12,6 @@
 		"check": "biome check ./",
 		"check:fix": "biome check --write ./"
 	},
-	"workspaces": [
-		"backend"
-	],
 	"dependencies": {
 		"@helia/json": "^4.0.5",
 		"@noble/curves": "1.9.2",
@@ -31,7 +28,8 @@
 		"solid-icons": "^1.1.0",
 		"solid-js": "^1.9.5",
 		"typescript": "^5.9.2",
-		"vinxi": "^0.5.3"
+		"vinxi": "^0.5.3",
+		"zod": "^4.1.11"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.4",
