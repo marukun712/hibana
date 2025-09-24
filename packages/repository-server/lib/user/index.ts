@@ -1,7 +1,7 @@
+import { documentSchema, type documentType } from "@hibana/schema/Document";
+import { profileSchema, type profileType } from "@hibana/schema/Profile";
+import { CryptoUtils } from "@hibana/utils/crypto";
 import { CID } from "kubo-rpc-client";
-import { CryptoUtils } from "../../../utils/crypto.ts";
-import { documentSchema, type documentType } from "../../schema/Document.ts";
-import { profileSchema, type profileType } from "../../schema/Profile.ts";
 import { searchDocs, writeDoc } from "../docs/index.ts";
 import { calculateHash } from "../hash.ts";
 import { getClient } from "../instances/ipfs.ts";

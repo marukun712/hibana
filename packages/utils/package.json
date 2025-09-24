@@ -1,0 +1,11 @@
+{
+	"name": "@hibana/utils",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"dependencies": {
+		"@hibana/schema": "*",
+		"@noble/curves": "1.9.2",
+		"@noble/secp256k1": "2.2.3"
+	}
+}

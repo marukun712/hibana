@@ -1,10 +1,10 @@
-import { CryptoUtils } from "../../../utils/crypto";
-import { deleteAllEvents, putEvent } from "../../db";
 import {
 	eventSchema,
 	type eventType,
 	migrateEventSchema,
-} from "../../schema/Event";
+} from "@hibana/schema/Event";
+import { CryptoUtils } from "@hibana/utils/crypto";
+import { deleteAllEvents, putEvent } from "../../db/index";
 import { calculateHash } from "../hash";
 import { findProfileDoc, updateUser } from "../user";
 

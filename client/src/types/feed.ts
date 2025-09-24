@@ -1,4 +1,4 @@
-import type { profileType } from "../../backend/schema/Profile";
+import type { profileType } from "@hibana/schema/Profile";
 
 export interface PostData {
 	id: string;

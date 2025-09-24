@@ -1,4 +1,4 @@
-import type { rawDocument } from "../../schema/Document.ts";
+import type { rawDocument } from "@hibana/schema/Document";
 import { getDoc } from "../docs/index.ts";
 
 export const createFeed = async (docs: rawDocument[]) => {

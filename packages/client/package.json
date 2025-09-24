@@ -1,0 +1,13 @@
+{
+	"name": "@hibana/client",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"dependencies": {
+		"@hibana/repository-server": "*",
+		"@hibana/schema": "*",
+		"@hibana/utils": "*",
+		"hono": "4.7.11",
+		"zod": "3.25.0"
+	}
+}

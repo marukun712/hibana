@@ -1,8 +1,8 @@
+import { events, type eventType } from "@hibana/schema/Event";
+import type { getSchemaType } from "@hibana/schema/Query";
+import { CryptoUtils } from "@hibana/utils/crypto";
 import { eq } from "drizzle-orm";
-import { CryptoUtils } from "../../utils/crypto.ts";
 import { calculateHash } from "../lib/hash.ts";
-import { events, type eventType } from "../schema/Event.ts";
-import type { getSchemaType } from "../schema/Query.ts";
 import { getDB } from "./db.ts";
 
 export const getEvent = async (json: getSchemaType) => {

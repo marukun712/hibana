@@ -1,5 +1,5 @@
+import type { profileType } from "@hibana/schema/Profile";
 import { Show } from "solid-js";
-import type { profileType } from "../../../backend/schema/Profile";
 import FollowButton from "../profile/button/followButton";
 
 export default function UserCard(props: {

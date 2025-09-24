@@ -1,19 +1,19 @@
-import { hc } from "hono/client";
-import { isCID } from "../../../utils/cid.ts";
-import { CryptoUtils } from "../../../utils/crypto.ts";
-import { deleteEvent, putEvent } from "../../db/index.ts";
-import type { getRouteType } from "../../index.ts";
 import {
 	allDataSchema,
 	documentSchema,
 	type documentType,
 	searchResult,
-} from "../../schema/Document.ts";
+} from "@hibana/schema/Document";
 import {
 	deleteEventSchema,
 	eventSchema,
 	type eventType,
-} from "../../schema/Event.ts";
+} from "@hibana/schema/Event";
+import { isCID } from "@hibana/utils/cid";
+import { CryptoUtils } from "@hibana/utils/crypto";
+import { hc } from "hono/client";
+import { deleteEvent, putEvent } from "../../db/index.ts";
+import type { getRouteType } from "../../index.ts";
 import { calculateHash } from "../hash.ts";
 import { getDB } from "../instances/db.ts";
 import {

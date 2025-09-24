@@ -1,7 +1,7 @@
+import type { profileType } from "@hibana/schema/Profile";
 import { useSearchParams } from "@solidjs/router";
 import { createSignal, For, onMount } from "solid-js";
 import { getFollowers, getFollows } from "~/lib/api/social";
-import type { profileType } from "../../../backend/schema/Profile";
 import UserCard from "./userCard";
 
 export default function UsersContainer() {

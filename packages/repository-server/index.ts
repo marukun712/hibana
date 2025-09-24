@@ -1,3 +1,12 @@
+import { eventSchema } from "@hibana/schema/Event";
+import { profileSchema } from "@hibana/schema/Profile";
+import {
+	eventRequestSchema,
+	feedRequestSchema,
+	getRequestSchema,
+	profileRequestSchema,
+	repoRequestSchema,
+} from "@hibana/schema/Query";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -14,15 +23,6 @@ import {
 import { createFeed } from "./lib/feed/index.ts";
 import { migrateRepo } from "./lib/migrate/index.ts";
 import { findProfileDoc, updateUser } from "./lib/user/index.ts";
-import { eventSchema } from "./schema/Event.ts";
-import { profileSchema } from "./schema/Profile.ts";
-import {
-	eventRequestSchema,
-	feedRequestSchema,
-	getRequestSchema,
-	profileRequestSchema,
-	repoRequestSchema,
-} from "./schema/Query.ts";
 
 const app = new Hono();
 const port = Number(process.env.PORT) || 8080;
@@ -280,3 +280,12 @@ serve({
 	port: port,
 });
 console.log(`Server listening on port ${port}`);
+
+export type {
+	getRouteType,
+	feedRouteType,
+	eventRouteType,
+	profileRouteType,
+	repoRouteType,
+	migrateRouteType,
+};

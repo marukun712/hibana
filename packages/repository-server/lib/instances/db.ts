@@ -1,4 +1,5 @@
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import type { documentType } from "@hibana/schema/Document";
 import { identify } from "@libp2p/identify";
 import {
 	createOrbitDB,
@@ -12,7 +13,6 @@ import { LevelDatastore } from "datastore-level";
 import * as dotenv from "dotenv";
 import { createHelia, libp2pDefaults } from "helia";
 import { createLibp2p } from "libp2p";
-import type { documentType } from "../../schema/Document";
 
 dotenv.config();
 
