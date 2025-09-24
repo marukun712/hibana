@@ -1,6 +1,6 @@
+import { createClient } from "@hibana/client";
 import { AiOutlineClose } from "solid-icons/ai";
 import { createSignal, Show } from "solid-js";
-import { createReply } from "~/lib/api/posts";
 import type { PostData } from "~/types/feed";
 
 export default function ReplyModal(props: {
@@ -11,6 +11,7 @@ export default function ReplyModal(props: {
 }) {
 	const [text, setText] = createSignal("");
 	const [posting, setPosting] = createSignal(false);
+	const client = createClient();
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
@@ -18,7 +19,7 @@ export default function ReplyModal(props: {
 
 		setPosting(true);
 		try {
-			await createReply(props.originalPost.id, text().trim());
+			await client.event.reply.add(props.originalPost.id, text().trim());
 			setText("");
 			props.onSuccess();
 			props.onClose();

@@ -4,6 +4,7 @@
 	"type": "module",
 	"private": true,
 	"dependencies": {
+		"@atproto/lex-cli": "^0.9.5",
 		"@hibana/repository-server": "*",
 		"@hibana/schema": "*",
 		"@hibana/utils": "*",

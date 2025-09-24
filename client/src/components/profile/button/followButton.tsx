@@ -1,13 +1,14 @@
+import { createClient } from "@hibana/client";
 import { debounce } from "@solid-primitives/scheduled";
 import { createSignal, onMount } from "solid-js";
-import { checkFollowStatus, followUser, unfollowUser } from "~/lib/api/social";
 
 export default function FollowButton(props: { target: string }) {
 	const [followed, setFollowed] = createSignal(false);
 	const [followedId, setFollowedId] = createSignal<string | null>(null);
+	const client = createClient();
 
 	async function post() {
-		const id = await followUser(props.target);
+		const id = await client.social.follow.add(props.target);
 		if (id) {
 			setFollowed(true);
 			setFollowedId(id);
@@ -17,7 +18,7 @@ export default function FollowButton(props: { target: string }) {
 	async function remove() {
 		const id = followedId();
 		if (!id) return;
-		await unfollowUser(id);
+		await client.social.follow.delete(id);
 		setFollowed(false);
 		setFollowedId(null);
 	}
@@ -26,7 +27,7 @@ export default function FollowButton(props: { target: string }) {
 	const removeDebounced = debounce(remove, 300);
 
 	onMount(async () => {
-		const result = await checkFollowStatus(props.target);
+		const result = await client.social.follow.checkStatus(props.target);
 		if (result.isFollowed) {
 			setFollowed(true);
 			setFollowedId(result.id);

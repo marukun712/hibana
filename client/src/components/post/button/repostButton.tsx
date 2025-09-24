@@ -1,6 +1,6 @@
+import { createClient } from "@hibana/client";
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
-import { checkRepostStatus, repostPost, unrepostPost } from "~/lib/api/social";
 import type { PostData } from "~/types/feed";
 import QuoteRepostModal from "../modal/quoteRepostModal";
 
@@ -11,16 +11,17 @@ export default function RepostButton(props: {
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);
 	const [showQuoteModal, setShowQuoteModal] = createSignal(false);
+	const client = createClient();
 
 	async function repost() {
 		if (reposted()) {
 			const id = repostId();
 			if (!id) return;
-			await unrepostPost(id);
+			await client.social.repost.delete(id);
 			setReposted(false);
 			setRepostId(null);
 		} else {
-			const eventId = await repostPost(props.originalPost.id);
+			const eventId = await client.social.repost.add(props.originalPost.id);
 			if (eventId) {
 				setReposted(true);
 				setRepostId(eventId);
@@ -29,7 +30,9 @@ export default function RepostButton(props: {
 	}
 
 	onMount(async () => {
-		const result = await checkRepostStatus(props.originalPost.id);
+		const result = await client.social.repost.checkStatus(
+			props.originalPost.id,
+		);
 		if (result.isReposted) {
 			setReposted(true);
 			setRepostId(result.id);

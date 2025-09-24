@@ -1,21 +1,35 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { eventType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
-export class PostAPI extends BaseEventAPI {
-	async add(content: string, getCurrentUser: () => Promise<profileType>) {
-		if (!content.trim()) {
+type Content = { content: string };
+
+export class PostAPI extends BaseEventAPI<"event.post", Content> {
+	constructor(repository: string, publickey: string) {
+		super(repository, publickey, "event.post");
+	}
+
+	async get(id: string): Promise<eventType<"event.post", Content>> {
+		return await this.getEvent(id);
+	}
+
+	async list(
+		id?: string,
+		target?: string,
+	): Promise<eventType<"event.post", Content>[]> {
+		return await this.listEvents(id, target);
+	}
+
+	async post(content: Content): Promise<string> {
+		if (!content.content.trim()) {
 			throw new Error("投稿内容が空です。");
 		}
 
-		const user = await getCurrentUser();
-		const postContent = {
-			content: content.trim(),
-		};
-		return await this.postEvent("event.post", postContent, user.repository);
+		return await this.postEvent({
+			content: content.content.trim(),
+		});
 	}
 
-	async delete(id: string, getCurrentUser: () => Promise<profileType>) {
-		const user = await getCurrentUser();
-		return await this.deleteEvent(id, user.repository);
+	async delete(id: string): Promise<void> {
+		return await this.deleteEvent(id);
 	}
 }

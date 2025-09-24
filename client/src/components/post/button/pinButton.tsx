@@ -1,14 +1,15 @@
+import { createClient } from "@hibana/client";
 import { debounce } from "@solid-primitives/scheduled";
 import { AiFillBook, AiOutlineBook } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
-import { checkPinStatus, pinPost, unpinPost } from "~/lib/api/social";
 
 export default function PinButton(props: { target: string }) {
 	const [pinned, setPinned] = createSignal(false);
 	const [pinnedId, setPinnedId] = createSignal<string | null>(null);
+	const client = createClient();
 
 	async function post() {
-		const eventId = await pinPost(props.target);
+		const eventId = await client.social.pin.add(props.target);
 		if (eventId) {
 			setPinned(true);
 			setPinnedId(eventId);
@@ -18,7 +19,7 @@ export default function PinButton(props: { target: string }) {
 	async function remove() {
 		const id = pinnedId();
 		if (!id) return;
-		await unpinPost(id);
+		await client.social.pin.delete(id);
 		setPinned(false);
 		setPinnedId(null);
 	}
@@ -27,7 +28,7 @@ export default function PinButton(props: { target: string }) {
 	const removeDebounced = debounce(remove, 300);
 
 	onMount(async () => {
-		const result = await checkPinStatus(props.target);
+		const result = await client.social.pin.checkStatus(props.target);
 		if (result.isPinned) {
 			setPinned(true);
 			setPinnedId(result.id);

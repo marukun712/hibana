@@ -6,6 +6,7 @@
 	"dependencies": {
 		"@hibana/schema": "*",
 		"@noble/curves": "1.9.2",
-		"@noble/secp256k1": "2.2.3"
+		"@noble/secp256k1": "2.2.3",
+		"kubo-rpc-client": "^5.3.0"
 	}
 }

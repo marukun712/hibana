@@ -1,12 +1,14 @@
-import { eventSchema } from "@hibana/schema/Event";
-import { profileSchema } from "@hibana/schema/Profile";
 import {
+	deleteEventSchema,
 	eventRequestSchema,
 	feedRequestSchema,
 	getRequestSchema,
+	migrateEventSchema,
 	profileRequestSchema,
+	profileSchema,
 	repoRequestSchema,
-} from "@hibana/schema/Query";
+	unknownEventSchema,
+} from "@hibana/schema";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -132,7 +134,7 @@ const eventRoute = app
 	.post(
 		"/event",
 		validator("json", (value, c) => {
-			const parsed = eventSchema.safeParse(value);
+			const parsed = unknownEventSchema.safeParse(value);
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
@@ -153,7 +155,7 @@ const eventRoute = app
 	.delete(
 		"/event",
 		validator("json", (value, c) => {
-			const parsed = eventSchema.safeParse(value);
+			const parsed = deleteEventSchema.safeParse(value);
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}
@@ -256,7 +258,7 @@ app.use("/migrate", cors());
 const migrateRoute = app.post(
 	"/migrate",
 	validator("json", (value, c) => {
-		const parsed = eventSchema.safeParse(value);
+		const parsed = migrateEventSchema.safeParse(value);
 		if (!parsed.success) {
 			return c.json({ error: "Invalid Schema." }, 400);
 		}
@@ -280,12 +282,3 @@ serve({
 	port: port,
 });
 console.log(`Server listening on port ${port}`);
-
-export type {
-	getRouteType,
-	feedRouteType,
-	eventRouteType,
-	profileRouteType,
-	repoRouteType,
-	migrateRouteType,
-};

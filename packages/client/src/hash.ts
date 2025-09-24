@@ -3,6 +3,5 @@ export const calculateHash = async (content: string): Promise<Uint8Array> => {
 		"SHA-256",
 		new TextEncoder().encode(content),
 	);
-
 	return new Uint8Array(hash);
 };

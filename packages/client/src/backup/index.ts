@@ -1,6 +1,5 @@
 import type { repoRouteType } from "@hibana/repository-server";
 import { eventSchema, type eventType } from "@hibana/schema/Event";
-import type { profileType } from "@hibana/schema/Profile";
 import { hc } from "hono/client";
 import { z } from "zod";
 
@@ -9,12 +8,11 @@ export interface BackupFile {
 }
 
 export class BackupAPI {
-	async create(getCurrentUser: () => Promise<profileType>): Promise<void> {
-		const user = await getCurrentUser();
-		const client = hc<repoRouteType>(user.repository);
+	async create(repository: string, publickey: string): Promise<void> {
+		const client = hc<repoRouteType>(repository);
 
 		const response = await client.repo.$get({
-			query: { publickey: user.publickey },
+			query: { publickey: publickey },
 		});
 		if (!response.ok) {
 			throw new Error("リポジトリデータの取得に失敗しました");
@@ -82,12 +80,12 @@ export class BackupAPI {
 	}
 
 	async getLatestRepositoryData(
-		getCurrentUser: () => Promise<profileType>,
+		repository: string,
+		publickey: string,
 	): Promise<eventType[]> {
-		const user = await getCurrentUser();
-		const client = hc<repoRouteType>(user.repository);
+		const client = hc<repoRouteType>(repository);
 		const response = await client.repo.$get({
-			query: { publickey: user.publickey },
+			query: { publickey: publickey },
 		});
 		if (!response.ok) {
 			throw new Error("リポジトリデータの取得に失敗しました");

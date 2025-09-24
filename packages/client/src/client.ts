@@ -1,22 +1,15 @@
-import { BackupAPI } from "./backup";
 import { EventsAPI } from "./events";
-import { MigrationAPI } from "./migration";
-import { UsersAPI } from "./users";
+import { FeedAPI } from "./feed/feed";
+import { ProfileAPI } from "./users";
 
 export class HibanaClient {
-	public users: UsersAPI;
 	public event: EventsAPI;
-	public backup: BackupAPI;
-	public migration: MigrationAPI;
+	public feed: FeedAPI;
+	public profile: ProfileAPI;
 
-	constructor() {
-		this.users = new UsersAPI();
-
-		// getCurrentUserをバインド
-		const getCurrentUser = this.users.getCurrentUser.bind(this.users);
-
-		this.event = new EventsAPI(getCurrentUser);
-		this.backup = new BackupAPI();
-		this.migration = new MigrationAPI();
+	constructor(repository: string, publickey: string) {
+		this.event = new EventsAPI(repository, publickey);
+		this.feed = new FeedAPI(repository, publickey);
+		this.profile = new ProfileAPI(repository, publickey);
 	}
 }

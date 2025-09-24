@@ -1,6 +1,6 @@
+import { createClient } from "@hibana/client";
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
-import { createReply, getPostById, getReplies } from "~/lib/api/posts";
 import type { FeedItem } from "~/types/feed";
 import {
 	isPostEvent,
@@ -37,6 +37,7 @@ export default function PostDetail() {
 	const [error, setError] = createSignal<string | null>(null);
 	const [replyText, setReplyText] = createSignal("");
 	const [isSubmittingReply, setIsSubmittingReply] = createSignal(false);
+	const client = createClient();
 
 	const fetchPosts = async () => {
 		const postId = searchParams.id as string;
@@ -45,9 +46,9 @@ export default function PostDetail() {
 			return;
 		}
 		try {
-			const postData = await getPostById(postId);
+			const postData = await client.event.post.getPostById(postId);
 			setPost(postData);
-			const repliesData = await getReplies(postId);
+			const repliesData = await client.event.reply.getReplies(postId);
 			setReplies(repliesData);
 		} catch (err) {
 			console.error("投稿の取得中にエラーが発生しました:", err);
@@ -67,9 +68,9 @@ export default function PostDetail() {
 
 		setIsSubmittingReply(true);
 		try {
-			await createReply(currentPost.id, replyText().trim());
+			await client.event.reply.add(currentPost.id, replyText().trim());
 			setReplyText("");
-			const repliesData = await getReplies(currentPost.id);
+			const repliesData = await client.event.reply.getReplies(currentPost.id);
 			setReplies(repliesData);
 		} catch (error) {
 			console.error("リプライ中にエラーが発生しました:", error);

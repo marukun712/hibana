@@ -1,15 +1,5 @@
+import { type BackupFile, createClient } from "@hibana/client";
 import { createSignal, For, onMount, Show } from "solid-js";
-import {
-	type BackupFile,
-	createBackup,
-	deleteBackup,
-	getBackupList,
-} from "~/lib/api/backup";
-import {
-	migrateFromBackup,
-	migrateFromFile,
-	migrateFromLatest,
-} from "~/lib/api/migration";
 
 export default function Backup() {
 	const [repository, setRepository] = createSignal<string | null>(null);
@@ -17,6 +7,7 @@ export default function Backup() {
 	const [isLoading, setIsLoading] = createSignal(false);
 	const [message, setMessage] = createSignal<string | null>(null);
 	const [error, setError] = createSignal<string | null>(null);
+	const client = createClient();
 
 	onMount(async () => {
 		await loadBackups();
@@ -24,7 +15,7 @@ export default function Backup() {
 
 	const loadBackups = async () => {
 		try {
-			const backupList = await getBackupList();
+			const backupList = await client.backup.getBackupList();
 			setBackups(backupList);
 		} catch (_e) {
 			setError("バックアップ一覧の読み込みに失敗しました");
@@ -35,7 +26,7 @@ export default function Backup() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			await createBackup();
+			await client.backup.createBackup();
 			setMessage("バックアップを作成しました");
 			await loadBackups();
 		} catch (err) {
@@ -50,7 +41,7 @@ export default function Backup() {
 		if (!confirm("このバックアップを削除しますか？")) return;
 
 		try {
-			await deleteBackup(filename);
+			await client.backup.deleteBackup(filename);
 			setMessage("バックアップを削除しました");
 			await loadBackups();
 		} catch (err) {
@@ -69,7 +60,7 @@ export default function Backup() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			await migrateFromBackup(filename, repo);
+			await client.migration.migrateFromBackup(filename, repo);
 			setMessage("マイグレーションが完了しました");
 		} catch (err) {
 			console.log(err);
@@ -89,7 +80,7 @@ export default function Backup() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			await migrateFromLatest(repo);
+			await client.migration.migrateFromLatest(repo);
 			setMessage("マイグレーションが完了しました");
 		} catch (err) {
 			console.log(err);
@@ -116,7 +107,7 @@ export default function Backup() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			await migrateFromFile(file, repo);
+			await client.migration.migrateFromFile(file, repo);
 			setMessage("ファイルからのマイグレーションが完了しました");
 		} catch (err) {
 			console.log(err);

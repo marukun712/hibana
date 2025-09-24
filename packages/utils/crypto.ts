@@ -1,155 +1,150 @@
-import type { eventType } from "@hibana/schema/Event";
-import type { profileType } from "@hibana/schema/Profile";
+import type { eventType, profileType, unknownSchemaType } from "@hibana/schema";
 import { schnorr } from "@noble/curves/secp256k1.js";
 import * as secp256k1 from "@noble/secp256k1";
 
-export class CryptoUtils {
-	private calculateHash: (content: string) => Promise<Uint8Array>;
+export type HashFunction = (content: string) => Promise<Uint8Array>;
 
-	constructor(calculateHash: (content: string) => Promise<Uint8Array>) {
-		this.calculateHash = calculateHash;
+export function generateKeyPair() {
+	const privateKey = schnorr.utils.randomPrivateKey();
+	const publickey = schnorr.getPublicKey(privateKey);
+
+	return {
+		privatekey: secp256k1.etc.bytesToHex(privateKey),
+		publickey: secp256k1.etc.bytesToHex(publickey),
+	};
+}
+
+export async function signMessage(
+	content: string,
+	calculateHash: HashFunction,
+): Promise<string> {
+	try {
+		const messageHash = await calculateHash(content);
+		return window.nostr.signSchnorr(secp256k1.etc.bytesToHex(messageHash));
+	} catch (error) {
+		console.error("Signing error:", error);
+		throw error;
 	}
+}
 
-	static generateKeyPair() {
-		const privateKey = schnorr.utils.randomPrivateKey();
-		const publickey = schnorr.getPublicKey(privateKey);
-
-		return {
-			privatekey: secp256k1.etc.bytesToHex(privateKey),
-			publickey: secp256k1.etc.bytesToHex(publickey),
-		};
+export async function verifySignature(
+	publickey: string,
+	signature: string,
+	content: string,
+	calculateHash: HashFunction,
+): Promise<boolean> {
+	try {
+		const messageHash = await calculateHash(content);
+		const signatureBytes = secp256k1.etc.hexToBytes(signature);
+		return schnorr.verify(signatureBytes, messageHash, publickey);
+	} catch (error) {
+		console.error("Signature verification error:", error);
+		return false;
 	}
+}
 
-	async signMessage(content: string): Promise<string> {
-		try {
-			const messageHash = await this.calculateHash(content);
-			return window.nostr.signSchnorr(secp256k1.etc.bytesToHex(messageHash));
-		} catch (error) {
-			console.error("Signing error:", error);
-			throw error;
-		}
+export async function createSecureMessage<T>(
+	params: {
+		event: string;
+		timestamp: string;
+		message: T;
+		publickey: string;
+	},
+	calculateHash: HashFunction,
+): Promise<eventType<string, T>> {
+	const { event, timestamp, message, publickey } = params;
+	if (!publickey) {
+		throw new Error("公開鍵が不正です");
 	}
+	const json = JSON.stringify({ event, timestamp, message });
+	const messageHash = await calculateHash(json);
+	const signature = await signMessage(json, calculateHash);
+	return {
+		id: secp256k1.etc.bytesToHex(messageHash),
+		publickey,
+		signature,
+		event,
+		timestamp,
+		message,
+	};
+}
 
-	async verifySignature(
-		publickey: string,
-		signature: string,
-		content: string,
-	): Promise<boolean> {
-		try {
-			const messageHash = await this.calculateHash(content);
-			const signatureBytes = secp256k1.etc.hexToBytes(signature);
-			return schnorr.verify(signatureBytes, messageHash, publickey);
-		} catch (error) {
-			console.error("Signature verification error:", error);
-			return false;
-		}
+export async function verifySecureMessage(
+	data: unknownSchemaType,
+	calculateHash: HashFunction,
+): Promise<boolean> {
+	const { id, publickey, signature, event, timestamp, message } = data;
+	const content = JSON.stringify({ event, timestamp, message });
+	const calculatedHash = secp256k1.etc.bytesToHex(await calculateHash(content));
+	if (calculatedHash !== id) {
+		console.error("Hash mismatch: possible message tampering");
+		return false;
 	}
+	return await verifySignature(publickey, signature, content, calculateHash);
+}
 
-	async createSecureMessage(
-		event: string,
-		timestamp: string,
-		message: { [key: string]: unknown },
-	): Promise<eventType> {
-		const publickey = await window.nostr.getPublicKey();
-		if (!publickey) {
-			throw new Error("公開鍵が不正です");
-		}
-
-		const json = JSON.stringify({ event, timestamp, message });
-		const messageHash = await this.calculateHash(json);
-		const signature = await this.signMessage(json);
-
-		return {
-			id: secp256k1.etc.bytesToHex(messageHash),
-			publickey,
-			signature,
-			event,
-			timestamp,
-			message,
-		};
+export async function createUserDoc(
+	params: {
+		username: string;
+		icon: string;
+		description: string;
+		repository: string;
+		updatedAt: string;
+		publickey: string;
+	},
+	calculateHash: HashFunction,
+): Promise<profileType> {
+	const { username, icon, description, repository, updatedAt, publickey } =
+		params;
+	const json = JSON.stringify({
+		username,
+		icon,
+		description,
+		repository,
+		updatedAt,
+	});
+	if (!publickey) {
+		throw new Error("公開鍵が不正です");
 	}
+	const messageHash = await calculateHash(json);
+	const signature = await signMessage(json, calculateHash);
+	return {
+		id: secp256k1.etc.bytesToHex(messageHash),
+		publickey,
+		signature,
+		username,
+		icon,
+		description,
+		repository,
+		updatedAt,
+	};
+}
 
-	async verifySecureMessage(data: eventType): Promise<boolean> {
-		const { id, publickey, signature, event, timestamp, message } = data;
-		const content = JSON.stringify({ event, timestamp, message });
-
-		const calculatedHash = secp256k1.etc.bytesToHex(
-			await this.calculateHash(content),
-		);
-
-		if (calculatedHash !== id) {
-			console.error("Hash mismatch: possible message tampering");
-			return false;
-		}
-
-		return await this.verifySignature(publickey, signature, content);
+export async function verifyUserDoc(
+	data: profileType,
+	calculateHash: HashFunction,
+): Promise<boolean> {
+	const {
+		id,
+		publickey,
+		signature,
+		username,
+		icon,
+		description,
+		repository,
+		updatedAt,
+	} = data;
+	const content = JSON.stringify({
+		username,
+		icon,
+		description,
+		repository,
+		updatedAt,
+	});
+	const calculatedHash = secp256k1.etc.bytesToHex(await calculateHash(content));
+	if (calculatedHash !== id) {
+		console.error("Hash mismatch: possible message tampering");
+		return false;
 	}
-
-	async createUserDoc(
-		username: string,
-		icon: string,
-		description: string,
-		repository: string,
-		updatedAt: string,
-	): Promise<profileType> {
-		const json = JSON.stringify({
-			username,
-			icon,
-			description,
-			repository,
-			updatedAt,
-		});
-
-		const publickey = await window.nostr.getPublicKey();
-		if (!publickey) {
-			console.error("Invalid public key");
-			throw new Error("公開鍵が不正です");
-		}
-
-		const messageHash = await this.calculateHash(json);
-		const signature = await this.signMessage(json);
-
-		return {
-			id: secp256k1.etc.bytesToHex(messageHash),
-			publickey,
-			signature,
-			username,
-			icon,
-			description,
-			repository,
-			updatedAt,
-		};
-	}
-
-	async verifyUserDoc(data: profileType): Promise<boolean> {
-		const {
-			id,
-			publickey,
-			signature,
-			username,
-			icon,
-			description,
-			repository,
-			updatedAt,
-		} = data;
-
-		const content = JSON.stringify({
-			username,
-			icon,
-			description,
-			repository,
-			updatedAt,
-		});
-
-		const calculatedHash = secp256k1.etc.bytesToHex(
-			await this.calculateHash(content),
-		);
-
-		if (calculatedHash !== id) {
-			console.error("Hash mismatch: possible message tampering");
-			return false;
-		}
-
-		return await this.verifySignature(publickey, signature, content);
-	}
+	return await verifySignature(publickey, signature, content, calculateHash);
 }

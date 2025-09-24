@@ -1,6 +1,10 @@
-import { documentSchema, type documentType } from "@hibana/schema/Document";
-import { profileSchema, type profileType } from "@hibana/schema/Profile";
-import { CryptoUtils } from "@hibana/utils/crypto";
+import {
+	documentSchema,
+	type documentType,
+	profileSchema,
+	type profileType,
+} from "@hibana/schema";
+import { verifyUserDoc } from "@hibana/utils";
 import { CID } from "kubo-rpc-client";
 import { searchDocs, writeDoc } from "../docs/index.ts";
 import { calculateHash } from "../hash.ts";
@@ -12,8 +16,7 @@ export const updateUser = async (profile: profileType) => {
 		console.error("Profile schema validation failed:", parsedProfile.error);
 		throw new Error("Validation failed");
 	}
-	const crypto = new CryptoUtils(calculateHash);
-	const verify = await crypto.verifyUserDoc(parsedProfile.data);
+	const verify = await verifyUserDoc(parsedProfile.data, calculateHash);
 	if (!verify) throw new Error("Verify failed");
 	const client = await getClient();
 	const result = await client.add(JSON.stringify(profile, null, 2));
@@ -35,7 +38,6 @@ export const updateUser = async (profile: profileType) => {
 export const findProfileDoc = async (publickey: string) => {
 	const data = await searchDocs({ publickey, event: "event.profile" });
 	if (!data[0]?.value.target) throw new Error("User is not found");
-
 	return await resolveUserDoc(data[0].value.target);
 };
 
@@ -49,8 +51,7 @@ export const resolveUserDoc = async (cid: string) => {
 	}
 	const buffer = Buffer.concat(chunks).toString("utf-8");
 	const doc = JSON.parse(buffer);
-	const crypto = new CryptoUtils(calculateHash);
-	const verify = await crypto.verifyUserDoc(doc);
+	const verify = await verifyUserDoc(doc, calculateHash);
 	if (!verify) throw new Error("Verify failed");
 	const parsed = profileSchema.safeParse(doc);
 	if (!parsed.success) {

@@ -1,6 +1,6 @@
-import { createClient } from "@hibana/client";
 import { CryptoUtils } from "@hibana/utils/crypto";
 import { createSignal } from "solid-js";
+import { userAPI } from "../../lib/user";
 
 export default function SignupForm() {
 	const [step, setStep] = createSignal(1);
@@ -18,8 +18,7 @@ export default function SignupForm() {
 	}
 
 	async function update() {
-		const client = createClient();
-		await client.users.profile.update(
+		await userAPI.updateProfile(
 			username(),
 			icon(),
 			description(),

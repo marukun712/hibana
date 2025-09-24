@@ -1,6 +1,7 @@
-import { createClient } from "@hibana/client";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import type { FeedItem } from "~/types/feed";
+import { client } from "../../lib/client";
+import { getCurrentUser } from "../../lib/user";
 import { renderPost } from "../post/postDetail";
 import Loading from "../ui/loading";
 
@@ -17,16 +18,21 @@ export default function Feed(props: {
 	const fetchPosts = async () => {
 		setLoading(true);
 		try {
-			const client = createClient();
+			const user = await getCurrentUser();
 			if (props.user) {
-				const data = await client.event.feed.getUserPosts(props.user);
+				const data = await client.event.feed.getUserPosts(
+					props.user,
+					user.repository,
+				);
 				setPosts(data);
 			} else if (props.feedType === "following") {
-				const user = await client.users.getCurrentUser();
-				const data = await client.event.feed.getFollowingPosts(user.publickey);
+				const data = await client.event.feed.getFollowingPosts(
+					user.publickey,
+					user.repository,
+				);
 				setPosts(data);
 			} else {
-				const data = await client.event.feed.getPosts();
+				const data = await client.event.feed.getPosts(user.repository);
 				setPosts(data);
 			}
 		} catch (err) {
@@ -48,8 +54,8 @@ export default function Feed(props: {
 
 		setIsSubmitting(true);
 		try {
-			const client = createClient();
-			await client.event.post.add(text().trim());
+			const user = await getCurrentUser();
+			await client.event.post.add(text().trim(), user.repository);
 			setText("");
 			await fetchPosts();
 		} catch (err) {

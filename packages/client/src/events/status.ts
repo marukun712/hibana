@@ -1,13 +1,13 @@
 import type { feedRouteType } from "@hibana/repository-server";
-import type { profileType } from "@hibana/schema/Profile";
 import { hc } from "hono/client";
 
 export class StatusAPI {
-	constructor(private getCurrentUser: () => Promise<profileType>) {}
-
-	async isFollowed(publickey: string, target: string) {
-		const user = await this.getCurrentUser();
-		const client = hc<feedRouteType>(user.repository);
+	constructor(repository: string, publickey: string) {
+		this.repository = repository;
+		this.publickey = publickey;
+	}
+	async isFollowed(publickey: string, target: string, repository: string) {
+		const client = hc<feedRouteType>(repository);
 		const res = await client.feed.$get({
 			query: { event: "event.follow", publickey, target },
 		});
@@ -19,9 +19,8 @@ export class StatusAPI {
 		}
 	}
 
-	async isReposted(publickey: string, target: string) {
-		const user = await this.getCurrentUser();
-		const client = hc<feedRouteType>(user.repository);
+	async isReposted(publickey: string, target: string, repository: string) {
+		const client = hc<feedRouteType>(repository);
 		const res = await client.feed.$get({
 			query: { event: "event.repost", publickey, target },
 		});
@@ -33,9 +32,8 @@ export class StatusAPI {
 		}
 	}
 
-	async isPinned(publickey: string, target: string) {
-		const user = await this.getCurrentUser();
-		const client = hc<feedRouteType>(user.repository);
+	async isPinned(publickey: string, target: string, repository: string) {
+		const client = hc<feedRouteType>(repository);
 		const res = await client.feed.$get({
 			query: { event: "event.pin", publickey, target },
 		});
@@ -47,9 +45,8 @@ export class StatusAPI {
 		}
 	}
 
-	async getFollows(publickey: string) {
-		const user = await this.getCurrentUser();
-		const client = hc<feedRouteType>(user.repository);
+	async getFollows(publickey: string, repository: string) {
+		const client = hc<feedRouteType>(repository);
 		const res = await client.feed.$get({
 			query: { event: "event.follow", publickey },
 		});
@@ -61,9 +58,8 @@ export class StatusAPI {
 		}
 	}
 
-	async getFollowers(publickey: string) {
-		const user = await this.getCurrentUser();
-		const client = hc<feedRouteType>(user.repository);
+	async getFollowers(publickey: string, repository: string) {
+		const client = hc<feedRouteType>(repository);
 		const res = await client.feed.$get({
 			query: { event: "event.follow", target: publickey },
 		});

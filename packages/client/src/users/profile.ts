@@ -1,31 +1,37 @@
 import type { profileRouteType } from "@hibana/repository-server";
-import { CryptoUtils } from "@hibana/utils/crypto";
+import { createUserDoc } from "@hibana/utils";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 
 export class ProfileAPI {
-	async update(
-		username: string,
-		icon: string,
-		description: string,
-		repository: string,
-	) {
-		const client = hc<profileRouteType>(repository);
+	repository: string;
+	publickey: string;
+
+	constructor(repository: string, publickey: string) {
+		this.repository = repository;
+		this.publickey = publickey;
+	}
+
+	async update(username: string, icon: string, description: string) {
+		const client = hc<profileRouteType>(this.repository);
 		const updatedAt = new Date().toISOString();
-		const crypto = new CryptoUtils(calculateHash);
-		const doc = await crypto.createUserDoc(
-			username,
-			icon,
-			description,
-			repository,
-			updatedAt,
+		const doc = await createUserDoc(
+			{
+				username,
+				icon,
+				description,
+				repository: this.repository,
+				updatedAt,
+				publickey: this.publickey,
+			},
+			calculateHash,
 		);
 
 		if (doc) await client.profile.$post({ json: doc });
 	}
 
 	async get(publickey: string) {
-		const client = hc<profileRouteType>("http://localhost:8000");
+		const client = hc<profileRouteType>(this.repository);
 		const res = await client.profile.$get({ query: { publickey } });
 		const json = await res.json();
 		if (!("error" in json)) {

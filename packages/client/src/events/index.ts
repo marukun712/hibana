@@ -1,5 +1,4 @@
-import type { profileType } from "@hibana/schema/Profile";
-import { FeedAPI } from "./feed";
+import { FeedAPI } from "../feed/feed";
 import { FollowAPI } from "./follow";
 import { PinAPI } from "./pin";
 import { PostAPI } from "./post";
@@ -8,17 +7,23 @@ import { QuoteRepostAPI, RepostAPI } from "./repost";
 import { StatusAPI } from "./status";
 
 export class EventsAPI {
-	public post = new PostAPI();
-	public reply = new ReplyAPI();
-	public repost = new RepostAPI();
-	public quoteRepost = new QuoteRepostAPI();
-	public follow = new FollowAPI();
-	public pin = new PinAPI();
+	public post: PostAPI;
+	public reply: ReplyAPI;
+	public repost: RepostAPI;
+	public quoteRepost: QuoteRepostAPI;
+	public follow: FollowAPI;
+	public pin: PinAPI;
 	public feed: FeedAPI;
 	public status: StatusAPI;
 
-	constructor(getCurrentUser: () => Promise<profileType>) {
-		this.feed = new FeedAPI(getCurrentUser);
-		this.status = new StatusAPI(getCurrentUser);
+	constructor(repository: string, publickey: string) {
+		this.post = new PostAPI(repository, publickey);
+		this.reply = new ReplyAPI(repository, publickey);
+		this.repost = new RepostAPI(repository, publickey);
+		this.quoteRepost = new QuoteRepostAPI(repository, publickey);
+		this.follow = new FollowAPI(repository, publickey);
+		this.pin = new PinAPI(repository, publickey);
+		this.feed = new FeedAPI(repository, publickey);
+		this.status = new StatusAPI(repository, publickey);
 	}
 }

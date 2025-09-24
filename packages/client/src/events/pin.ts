@@ -1,19 +1,32 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { eventType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
-export class PinAPI extends BaseEventAPI {
-	async add(targetId: string, getCurrentUser: () => Promise<profileType>) {
-		if (!targetId) {
-			throw new Error("ピン対象が指定されていません。");
-		}
+type Content = { target: string };
 
-		const user = await getCurrentUser();
-		const pinContent = { target: targetId };
-		return await this.postEvent("event.pin", pinContent, user.repository);
+export class PinAPI extends BaseEventAPI<"event.pin", Content> {
+	constructor(repository: string, publickey: string) {
+		super(repository, publickey, "event.pin");
 	}
 
-	async delete(id: string, getCurrentUser: () => Promise<profileType>) {
-		const user = await getCurrentUser();
-		return await this.deleteEvent(id, user.repository);
+	async get(id: string): Promise<eventType<"event.pin", Content>> {
+		return await this.getEvent(id);
+	}
+
+	async list(
+		id?: string,
+		target?: string,
+	): Promise<eventType<"event.pin", Content>[]> {
+		return await this.listEvents(id, target);
+	}
+
+	async post(content: Content): Promise<string> {
+		if (!content.target) {
+			throw new Error("ピン対象が指定されていません。");
+		}
+		return await this.postEvent(content);
+	}
+
+	async delete(id: string): Promise<void> {
+		return await this.deleteEvent(id);
 	}
 }

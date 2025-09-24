@@ -1,16 +1,13 @@
 import {
 	allDataSchema,
+	type deleteSchemaType,
 	documentSchema,
 	type documentType,
 	searchResult,
-} from "@hibana/schema/Document";
-import {
-	deleteEventSchema,
-	eventSchema,
-	type eventType,
-} from "@hibana/schema/Event";
-import { isCID } from "@hibana/utils/cid";
-import { CryptoUtils } from "@hibana/utils/crypto";
+	unknownEventSchema,
+	type unknownSchemaType,
+} from "@hibana/schema";
+import { isCID, verifySecureMessage } from "@hibana/utils";
 import { hc } from "hono/client";
 import { deleteEvent, putEvent } from "../../db/index.ts";
 import type { getRouteType } from "../../index.ts";
@@ -77,15 +74,14 @@ export const resolveRepositoryDoc = async (document: documentType) => {
 	});
 	if (data.status !== 200) return null;
 	const json = await data.json();
-	const parsedEvent = eventSchema.safeParse(json);
+	const parsedEvent = unknownEventSchema.safeParse(json);
 	if (!parsedEvent.success) {
 		console.error("Event schema validation failed:", parsedEvent.error);
 		return null;
 	}
 	const event = parsedEvent.data;
 	//データの検証
-	const crypto = new CryptoUtils(calculateHash);
-	const verify = await crypto.verifySecureMessage(event);
+	const verify = await verifySecureMessage(event, calculateHash);
 	if (!verify) {
 		return null;
 	}
@@ -122,11 +118,10 @@ export const getDoc = async (id: string) => {
 	return { ...record, target: targetRecord };
 };
 
-export const putDoc = async (event: eventType) => {
+export const putDoc = async (event: unknownSchemaType) => {
 	//データの検証
-	const crypto = new CryptoUtils(calculateHash);
-	const verify = await crypto.verifySecureMessage(event);
-	const parsedEvent = eventSchema.safeParse(event);
+	const verify = await verifySecureMessage(event, calculateHash);
+	const parsedEvent = unknownEventSchema.safeParse(event);
 	if (!parsedEvent.success) {
 		console.error("Event schema validation failed:", parsedEvent.error);
 		throw new Error("Validation failed");
@@ -152,29 +147,12 @@ export const putDoc = async (event: eventType) => {
 	return event;
 };
 
-export const deleteDoc = async (event: eventType) => {
-	const crypto = new CryptoUtils(calculateHash);
-	const verify = await crypto.verifySecureMessage(event);
-	const parsedEvent = eventSchema.safeParse(event);
-	if (!parsedEvent.success) {
-		console.error("Event schema validation failed:", parsedEvent.error);
-		throw new Error("Validation failed");
-	}
-	if (parsedEvent.data.event !== "event.delete") {
-		throw new Error("Invalid event type");
-	}
+export const deleteDoc = async (event: deleteSchemaType) => {
+	const verify = await verifySecureMessage(event, calculateHash);
 	if (!verify) {
 		throw new Error("Verify failed.");
 	}
-	const parsedMessage = deleteEventSchema.safeParse(parsedEvent.data.message);
-	if (!parsedMessage.success) {
-		console.error(
-			"Delete event schema validation failed:",
-			parsedMessage.error,
-		);
-		throw new Error("Validation failed");
-	}
-	const data = parsedMessage.data;
+	const data = event.message;
 	const docs = await searchDocs({ _id: data.target });
 	if (!docs[0]) {
 		throw new Error("Document is not found.");

@@ -1,27 +1,47 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const events = sqliteTable("events", {
-	id: text("id").primaryKey(),
-	publickey: text("publickey").notNull(),
-	signature: text("signature").notNull(),
-	event: text("event").notNull(),
-	timestamp: text("timestamp").notNull(),
-	message: text({ mode: "json" }).notNull(),
-});
+export const eventSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(
+	eventSchema: T,
+	messageSchema: U,
+) =>
+	z.object({
+		id: z.string(),
+		publickey: z.string(),
+		signature: z.string(),
+		event: eventSchema,
+		timestamp: z.string(),
+		message: messageSchema,
+	});
 
-export const eventSchema = createSelectSchema(events);
-export type eventType = z.infer<typeof eventSchema>;
+export type eventType<T, U> = {
+	id: string;
+	publickey: string;
+	signature: string;
+	event: T;
+	timestamp: string;
+	message: U;
+};
 
-export const deleteEventSchema = z.object({
-	target: z.string(),
-});
+export const unknownEventSchema = eventSchema(
+	z.string(),
+	z.record(z.string(), z.unknown()),
+);
 
-export const migrateEventSchema = z.object({
-	url: z.string(),
-	body: z.array(eventSchema),
-});
+export const deleteEventSchema = eventSchema(
+	z.literal("event.delete"),
+	z.object({
+		target: z.string(),
+	}),
+);
 
+export const migrateEventSchema = eventSchema(
+	z.literal("event.migrate"),
+	z.object({
+		url: z.string(),
+		body: z.array(eventSchema(z.string(), z.record(z.string(), z.unknown()))),
+	}),
+);
+
+export type unknownSchemaType = z.infer<typeof unknownEventSchema>;
 export type deleteSchemaType = z.infer<typeof deleteEventSchema>;
 export type migrateSchemaType = z.infer<typeof migrateEventSchema>;

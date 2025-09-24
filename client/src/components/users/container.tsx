@@ -1,12 +1,13 @@
+import { createClient } from "@hibana/client";
 import type { profileType } from "@hibana/schema/Profile";
 import { useSearchParams } from "@solidjs/router";
 import { createSignal, For, onMount } from "solid-js";
-import { getFollowers, getFollows } from "~/lib/api/social";
 import UserCard from "./userCard";
 
 export default function UsersContainer() {
 	const [searchParams] = useSearchParams();
 	const [users, setUsers] = createSignal<profileType[]>();
+	const client = createClient();
 
 	onMount(async () => {
 		const type = searchParams.type as string;
@@ -14,7 +15,7 @@ export default function UsersContainer() {
 
 		switch (type) {
 			case "follow": {
-				const data = await getFollows(publickey);
+				const data = await client.social.follow.getFollows(publickey);
 				const usersData = data.map((data) => {
 					return data.target as profileType;
 				});
@@ -23,7 +24,7 @@ export default function UsersContainer() {
 				break;
 			}
 			case "follower": {
-				const data = await getFollowers(publickey);
+				const data = await client.social.follow.getFollowers(publickey);
 				const usersData = data.map((data) => {
 					return data.user;
 				});

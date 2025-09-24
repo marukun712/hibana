@@ -1,21 +1,32 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { eventType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
-export class FollowAPI extends BaseEventAPI {
-	async add(targetId: string, getCurrentUser: () => Promise<profileType>) {
-		if (!targetId) {
-			throw new Error("フォロー対象が指定されていません。");
-		}
+type Content = { target: string };
 
-		const user = await getCurrentUser();
-		const followContent = {
-			target: targetId,
-		};
-		return await this.postEvent("event.follow", followContent, user.repository);
+export class FollowAPI extends BaseEventAPI<"event.follow", Content> {
+	constructor(repository: string, publickey: string) {
+		super(repository, publickey, "event.follow");
 	}
 
-	async delete(id: string, getCurrentUser: () => Promise<profileType>) {
-		const user = await getCurrentUser();
-		return await this.deleteEvent(id, user.repository);
+	async get(id: string): Promise<eventType<"event.follow", Content>> {
+		return await this.getEvent(id);
+	}
+
+	async list(
+		id?: string,
+		target?: string,
+	): Promise<eventType<"event.follow", Content>[]> {
+		return await this.listEvents(id, target);
+	}
+
+	async post(content: Content): Promise<string> {
+		if (!content.target) {
+			throw new Error("フォロー対象が指定されていません。");
+		}
+		return await this.postEvent(content);
+	}
+
+	async delete(id: string): Promise<void> {
+		return await this.deleteEvent(id);
 	}
 }

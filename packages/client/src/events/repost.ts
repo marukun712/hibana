@@ -1,52 +1,73 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { eventType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
-export class RepostAPI extends BaseEventAPI {
-	async add(targetId: string, getCurrentUser: () => Promise<profileType>) {
-		if (!targetId) {
-			throw new Error("リポスト対象が指定されていません。");
-		}
+type RepostContent = { target: string };
+type QuoteRepostContent = { target: string; content: string };
 
-		const user = await getCurrentUser();
-		const repostContent = {
-			target: targetId,
-		};
-		return await this.postEvent("event.repost", repostContent, user.repository);
+export class RepostAPI extends BaseEventAPI<"event.repost", RepostContent> {
+	constructor(repository: string, publickey: string) {
+		super(repository, publickey, "event.repost");
 	}
 
-	async delete(id: string, getCurrentUser: () => Promise<profileType>) {
-		const user = await getCurrentUser();
-		return await this.deleteEvent(id, user.repository);
+	async get(id: string): Promise<eventType<"event.repost", RepostContent>> {
+		return await this.getEvent(id);
+	}
+
+	async list(
+		id?: string,
+		target?: string,
+	): Promise<eventType<"event.repost", RepostContent>[]> {
+		return await this.listEvents(id, target);
+	}
+
+	async post(content: RepostContent): Promise<string> {
+		if (!content.target) {
+			throw new Error("リポスト対象が指定されていません。");
+		}
+		return await this.postEvent(content);
+	}
+
+	async delete(id: string): Promise<void> {
+		return await this.deleteEvent(id);
 	}
 }
 
-export class QuoteRepostAPI extends BaseEventAPI {
-	async add(
-		targetId: string,
-		content: string,
-		getCurrentUser: () => Promise<profileType>,
-	) {
-		if (!content.trim()) {
+export class QuoteRepostAPI extends BaseEventAPI<
+	"event.quote_repost",
+	QuoteRepostContent
+> {
+	constructor(repository: string, publickey: string) {
+		super(repository, publickey, "event.quote_repost");
+	}
+
+	async get(
+		id: string,
+	): Promise<eventType<"event.quote_repost", QuoteRepostContent>> {
+		return await this.getEvent(id);
+	}
+
+	async list(
+		id?: string,
+		target?: string,
+	): Promise<eventType<"event.quote_repost", QuoteRepostContent>[]> {
+		return await this.listEvents(id, target);
+	}
+
+	async post(content: QuoteRepostContent): Promise<string> {
+		if (!content.content.trim()) {
 			throw new Error("引用リポスト内容が空です。");
 		}
-		if (!targetId) {
+		if (!content.target) {
 			throw new Error("引用リポスト対象が指定されていません。");
 		}
 
-		const user = await getCurrentUser();
-		const quoteRepostContent = {
-			target: targetId,
-			content: content.trim(),
-		};
-		return await this.postEvent(
-			"event.quote_repost",
-			quoteRepostContent,
-			user.repository,
-		);
+		return await this.postEvent({
+			...content,
+			content: content.content.trim(),
+		});
 	}
 
-	async delete(id: string, getCurrentUser: () => Promise<profileType>) {
-		const user = await getCurrentUser();
-		return await this.deleteEvent(id, user.repository);
+	async delete(id: string): Promise<void> {
+		return await this.deleteEvent(id);
 	}
 }
