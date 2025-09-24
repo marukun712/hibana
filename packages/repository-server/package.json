@@ -1,0 +1,42 @@
+{
+  "name": "hibana-backend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "npx tsx index.ts",
+    "format": "biome format ./",
+    "format:fix": "biome format --write ./",
+    "lint": "biome lint ./",
+    "lint:fix": "biome lint --write ./",
+    "check": "biome check ./",
+    "check:fix": "biome check --write ./"
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.1",
+    "@constl/orbit-db-types": "^2.0.6",
+    "@did-ipns/kit": "^1.0.0",
+    "@helia/json": "^4.0.5",
+    "@hono/node-server": "^1.14.1",
+    "@libsql/client": "^0.15.6",
+    "@noble/curves": "1.9.2",
+    "@orbitdb/core": "^2.5.0",
+    "@orbitdb/voyager": "^0.0.3",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^11.10.0",
+    "blockstore-fs": "^2.0.2",
+    "blockstore-level": "^2.0.3",
+    "datastore-level": "^11.0.1",
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.43.1",
+    "drizzle-zod": "^0.7.1",
+    "helia": "^5.4.1",
+    "hono": "4.7.11",
+    "kubo-rpc-client": "^5.1.0",
+    "zod": "3.25.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "oxlint": "^1.14.0"
+  }
+}
