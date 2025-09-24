@@ -4,7 +4,6 @@ import { PinAPI } from "./pin";
 import { PostAPI } from "./post";
 import { ReplyAPI } from "./reply";
 import { QuoteRepostAPI, RepostAPI } from "./repost";
-import { StatusAPI } from "./status";
 
 export class EventsAPI {
 	public post: PostAPI;
@@ -14,7 +13,6 @@ export class EventsAPI {
 	public follow: FollowAPI;
 	public pin: PinAPI;
 	public feed: FeedAPI;
-	public status: StatusAPI;
 
 	constructor(repository: string, publickey: string) {
 		this.post = new PostAPI(repository, publickey);
@@ -24,6 +22,5 @@ export class EventsAPI {
 		this.follow = new FollowAPI(repository, publickey);
 		this.pin = new PinAPI(repository, publickey);
 		this.feed = new FeedAPI(repository, publickey);
-		this.status = new StatusAPI(repository, publickey);
 	}
 }

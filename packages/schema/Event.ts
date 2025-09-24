@@ -24,7 +24,7 @@ export type eventType<T, U> = {
 
 export const unknownEventSchema = eventSchema(
 	z.string(),
-	z.record(z.string(), z.unknown()),
+	z.record(z.string(), z.any()),
 );
 
 export const deleteEventSchema = eventSchema(
