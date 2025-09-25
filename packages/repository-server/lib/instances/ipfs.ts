@@ -1,12 +1,15 @@
 import { create, type KuboRPCClient } from "kubo-rpc-client";
 
-let client: KuboRPCClient;
+export class IPFSClientService {
+	private client: KuboRPCClient;
 
-export const getClient = async () => {
-	if (client) {
-		return client;
+	constructor(endpoint: string = "http://ipfs:5001") {
+		this.client = create(new URL(endpoint));
 	}
 
-	client = create(new URL("http://ipfs:5001"));
-	return client;
-};
+	public getClient(): KuboRPCClient {
+		return this.client;
+	}
+}
+
+export const ipfs = new IPFSClientService();

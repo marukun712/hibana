@@ -7,7 +7,7 @@ import {
 	type ParentComponent,
 	useContext,
 } from "solid-js";
-import { createClient, getCurrentUser } from "~/lib/client";
+import { createClient } from "~/lib/client";
 
 interface AuthContextType {
 	client: () => HibanaClient;
@@ -26,7 +26,9 @@ export const AuthProvider: ParentComponent = (props) => {
 
 	const login = async () => {
 		try {
-			const userProfile = await getCurrentUser();
+			const publickey = await window.nostr.getPublicKey();
+			if (!publickey) setUser(null);
+			const userProfile = await client().profile.get(publickey);
 			setUser(userProfile);
 			if (userProfile) {
 				const hibanaClient = createClient(userProfile.repository);

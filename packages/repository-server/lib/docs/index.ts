@@ -12,7 +12,7 @@ import { hc } from "hono/client";
 import { deleteEvent, putEvent } from "../../db/index.ts";
 import type { getRouteType } from "../../index.ts";
 import { calculateHash } from "../hash.ts";
-import { getDB } from "../instances/db.ts";
+import { orbitDB } from "../instances/db.ts";
 import {
 	findProfileDoc,
 	isUserPublickey,
@@ -20,18 +20,17 @@ import {
 } from "../user/index.ts";
 
 export const writeDoc = async (document: documentType) => {
+	const db = await orbitDB.getDB();
 	const parsed = documentSchema.safeParse(document);
 	if (!parsed.success) {
 		console.error("Document schema validation failed:", parsed.error);
 		throw new Error("Verify failed.");
 	}
-	const db = await getDB();
-	console.log(db);
 	await db.put(document);
 };
 
 export const getAllDocs = async () => {
-	const db = await getDB();
+	const db = await orbitDB.getDB();
 	const data = await db.all();
 	const parsed = allDataSchema.safeParse(data);
 	if (!parsed.success) {
@@ -42,12 +41,13 @@ export const getAllDocs = async () => {
 };
 
 export const searchDocs = async (query: { [key: string]: string }) => {
-	const db = await getDB();
+	const db = await orbitDB.getDB();
 	const result = await db.query((doc: documentType) =>
 		Object.entries(query).every(
 			([key, value]) => doc[key as keyof documentType] === value,
 		),
 	);
+	console.log(result);
 	const parsed = searchResult.safeParse(result);
 	if (!parsed.success) {
 		console.error("Search result schema validation failed:", parsed.error);
@@ -56,6 +56,7 @@ export const searchDocs = async (query: { [key: string]: string }) => {
 	const data = parsed.data.map((doc) => {
 		return { value: doc };
 	});
+	console.log(data);
 	return data;
 };
 

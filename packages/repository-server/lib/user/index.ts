@@ -8,7 +8,7 @@ import { verifyUserDoc } from "@hibana/utils";
 import { CID } from "kubo-rpc-client";
 import { searchDocs, writeDoc } from "../docs/index.ts";
 import { calculateHash } from "../hash.ts";
-import { getClient } from "../instances/ipfs.ts";
+import { ipfs } from "../instances/ipfs.ts";
 
 export const updateUser = async (profile: profileType) => {
 	const parsedProfile = profileSchema.safeParse(profile);
@@ -18,7 +18,7 @@ export const updateUser = async (profile: profileType) => {
 	}
 	const verify = await verifyUserDoc(parsedProfile.data, calculateHash);
 	if (!verify) throw new Error("Verify failed");
-	const client = await getClient();
+	const client = ipfs.getClient();
 	const result = await client.add(JSON.stringify(profile, null, 2));
 	const document: documentType = {
 		_id: profile.id,
@@ -43,7 +43,7 @@ export const findProfileDoc = async (publickey: string) => {
 
 //ipfs上の署名済みuserドキュメントを解決する
 export const resolveUserDoc = async (cid: string) => {
-	const client = await getClient();
+	const client = ipfs.getClient();
 	const raw = client.cat(CID.parse(cid));
 	const chunks: Uint8Array[] = [];
 	for await (const chunk of raw) {
