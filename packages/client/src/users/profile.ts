@@ -10,26 +10,27 @@ export class ProfileAPI {
 		this.repository = repository;
 	}
 
-	async update(
-		publickey: string,
-		username: string,
-		icon: string,
-		description: string,
-	) {
-		const client = hc<profileRouteType>(this.repository);
+	async update(params: {
+		publickey: string;
+		username: string;
+		icon: string;
+		repository: string;
+		description: string;
+	}) {
+		const client = hc<profileRouteType>(params.repository);
 		const updatedAt = new Date().toISOString();
 		const doc = await createUserDoc(
 			{
-				username,
-				icon,
-				description,
-				repository: this.repository,
+				username: params.username,
+				icon: params.icon,
+				description: params.description,
+				repository: params.repository,
 				updatedAt,
-				publickey: publickey,
+				publickey: params.publickey,
 			},
 			calculateHash,
 		);
-
+		console.log(createUserDoc);
 		if (doc) await client.profile.$post({ json: doc });
 	}
 

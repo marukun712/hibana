@@ -1,8 +1,9 @@
-import { CryptoUtils } from "@hibana/utils/crypto";
+import { generateKeyPair } from "@hibana/utils";
 import { createSignal } from "solid-js";
-import { userAPI } from "../../lib/user";
+import { useAuth } from "~/contexts/authContext";
 
 export default function SignupForm() {
+	const { client: clientInstance } = useAuth();
 	const [step, setStep] = createSignal(1);
 	const [username, setUsername] = createSignal("");
 	const [icon, setIcon] = createSignal("");
@@ -12,18 +13,22 @@ export default function SignupForm() {
 	const [copied, setCopied] = createSignal(false);
 
 	function generateKey() {
-		const { privatekey: generated } = CryptoUtils.generateKeyPair();
+		const { privatekey: generated } = generateKeyPair();
 		setPrivateKey(generated);
 		setCopied(false);
 	}
 
 	async function update() {
-		await userAPI.updateProfile(
-			username(),
-			icon(),
-			description(),
-			repository(),
-		);
+		const client = clientInstance();
+		const publickey = await window.nostr.getPublicKey();
+
+		await client.profile.update({
+			publickey: publickey,
+			icon: icon(),
+			username: username(),
+			repository: repository(),
+			description: description(),
+		});
 
 		setUsername("");
 		setIcon("");
