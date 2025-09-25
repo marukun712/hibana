@@ -8,17 +8,15 @@ import { z } from "zod";
 
 export class RepositoryAPI {
 	repository: string;
-	publickey: string;
 
-	constructor(repository: string, publickey: string) {
+	constructor(repository: string) {
 		this.repository = repository;
-		this.publickey = publickey;
 	}
 
-	async get(): Promise<unknownSchemaType[]> {
+	async get(params: { publickey: string }): Promise<unknownSchemaType[]> {
 		const client = hc<repoRouteType>(this.repository);
 		const response = await client.repo.$get({
-			query: { publickey: this.publickey },
+			query: { publickey: params.publickey },
 		});
 		if (!response.ok) {
 			throw new Error("リポジトリデータの取得に失敗しました");

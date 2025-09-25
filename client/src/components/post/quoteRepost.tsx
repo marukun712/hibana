@@ -1,5 +1,5 @@
+import type { PostEvent, QuoteRepostEvent } from "@hibana/client";
 import { AiOutlineEdit } from "solid-icons/ai";
-import type { PostEvent, QuoteRepostEvent } from "~/lib/client";
 import Post from "./post";
 
 export default function QuoteRepost(props: {

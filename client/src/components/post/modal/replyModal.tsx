@@ -1,6 +1,7 @@
+import type { PostEvent } from "@hibana/client";
 import { AiOutlineClose } from "solid-icons/ai";
 import { createSignal, Show } from "solid-js";
-import { client, type PostEvent } from "~/lib/client";
+import { useAuth } from "~/contexts/authContext";
 
 export default function ReplyModal(props: {
 	originalPost: PostEvent;
@@ -10,6 +11,8 @@ export default function ReplyModal(props: {
 }) {
 	const [text, setText] = createSignal("");
 	const [posting, setPosting] = createSignal(false);
+	const { client: getClient, user } = useAuth();
+	const publickey = user()?.publickey;
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
@@ -17,8 +20,9 @@ export default function ReplyModal(props: {
 
 		setPosting(true);
 		try {
-			const clientInstance = await client();
-			await clientInstance.event.reply.post({
+			const clientInstance = getClient();
+			if (!clientInstance || !publickey) return;
+			await clientInstance.event.reply.post(publickey, {
 				target: props.originalPost.id,
 				content: text().trim(),
 			});

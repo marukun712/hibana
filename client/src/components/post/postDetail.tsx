@@ -1,20 +1,20 @@
-import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import {
-	client,
-	type FeedItem,
 	isPostEvent,
 	isQuoteRepostEvent,
 	isReplyEvent,
 	isRepostEvent,
-} from "~/lib/client";
+} from "@hibana/client";
+import type { unknownSchemaType } from "@hibana/schema";
+import { useSearchParams } from "@solidjs/router";
+import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import { useAuth } from "~/contexts/authContext";
 import Loading from "../ui/loading";
 import Post from "./post";
 import QuoteRepost from "./quoteRepost";
 import Reply from "./reply";
 import RepostedPost from "./repostedPost";
 
-export const renderPost = (item: FeedItem) => {
+export const renderPost = (item: unknownSchemaType) => {
 	if (isPostEvent(item)) {
 		return <Post post={item} />;
 	}
@@ -32,11 +32,13 @@ export const renderPost = (item: FeedItem) => {
 
 export default function PostDetail() {
 	const [searchParams] = useSearchParams();
-	const [post, setPost] = createSignal<FeedItem | null>(null);
-	const [replies, setReplies] = createSignal<FeedItem[]>([]);
+	const [post, setPost] = createSignal<unknownSchemaType | null>(null);
+	const [replies, setReplies] = createSignal<unknownSchemaType[]>([]);
 	const [error, setError] = createSignal<string | null>(null);
 	const [replyText, setReplyText] = createSignal("");
 	const [isSubmittingReply, setIsSubmittingReply] = createSignal(false);
+	const { client: getClient, user } = useAuth();
+	const publickey = user()?.publickey;
 
 	const fetchPosts = async () => {
 		const postId = searchParams.id as string;
@@ -45,7 +47,8 @@ export default function PostDetail() {
 			return;
 		}
 		try {
-			const clientInstance = await client();
+			const clientInstance = getClient();
+			if (!clientInstance) return;
 			const PostEvent = await clientInstance.feed.getPostById(postId);
 			setPost(PostEvent);
 			const repliesData = await clientInstance.feed.getReplies(postId);
@@ -68,8 +71,9 @@ export default function PostDetail() {
 
 		setIsSubmittingReply(true);
 		try {
-			const clientInstance = await client();
-			await clientInstance.event.reply.post({
+			const clientInstance = getClient();
+			if (!clientInstance || !publickey) return;
+			await clientInstance.event.reply.post(publickey, {
 				target: currentPost.id,
 				content: replyText().trim(),
 			});

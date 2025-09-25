@@ -5,14 +5,17 @@ import { calculateHash } from "../hash";
 
 export class ProfileAPI {
 	repository: string;
-	publickey: string;
 
-	constructor(repository: string, publickey: string) {
+	constructor(repository: string) {
 		this.repository = repository;
-		this.publickey = publickey;
 	}
 
-	async update(username: string, icon: string, description: string) {
+	async update(
+		publickey: string,
+		username: string,
+		icon: string,
+		description: string,
+	) {
 		const client = hc<profileRouteType>(this.repository);
 		const updatedAt = new Date().toISOString();
 		const doc = await createUserDoc(
@@ -22,7 +25,7 @@ export class ProfileAPI {
 				description,
 				repository: this.repository,
 				updatedAt,
-				publickey: this.publickey,
+				publickey: publickey,
 			},
 			calculateHash,
 		);

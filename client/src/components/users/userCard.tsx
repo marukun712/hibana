@@ -1,4 +1,4 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { profileType } from "@hibana/schema";
 import { Show } from "solid-js";
 import FollowButton from "../profile/button/followButton";
 

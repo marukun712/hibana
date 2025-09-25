@@ -1,5 +1,5 @@
+import type { PostEvent, RepostEvent } from "@hibana/client";
 import { AiOutlineRetweet } from "solid-icons/ai";
-import type { PostEvent, RepostEvent } from "~/lib/client";
 import Post from "./post";
 
 export default function RepostedPost(props: {

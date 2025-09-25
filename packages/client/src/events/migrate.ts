@@ -7,8 +7,8 @@ type Content = {
 };
 
 export class MigrationAPI extends BaseEventAPI<"event.migrate", Content> {
-	constructor(repository: string, publickey: string) {
-		super(repository, publickey, "event.migrate");
+	constructor(repository: string) {
+		super(repository, "event.migrate");
 	}
 
 	async get(id: string): Promise<eventReturnType<"event.migrate", Content>> {
@@ -16,20 +16,21 @@ export class MigrationAPI extends BaseEventAPI<"event.migrate", Content> {
 	}
 
 	async list(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<"event.migrate", Content>[]> {
 		return await this.listEvents(params);
 	}
 
-	async post(content: Content): Promise<string> {
+	async post(publickey: string, content: Content): Promise<string> {
 		if (!content.body || content.body.length === 0) {
 			throw new Error("マイグレーションデータが空です。");
 		}
-		return await this.postEvent(content);
+		return await this.postEvent(publickey, content);
 	}
 
-	async delete(id: string): Promise<void> {
-		return await this.deleteEvent(id);
+	async delete(publickey: string, id: string): Promise<void> {
+		return await this.deleteEvent(publickey, id);
 	}
 }

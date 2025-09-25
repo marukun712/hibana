@@ -1,4 +1,4 @@
-import type { PostEvent } from "~/lib/client";
+import type { PostEvent } from "@hibana/client";
 import PinButton from "./button/pinButton";
 import ReplyButton from "./button/replyButton";
 import RepostButton from "./button/repostButton";

@@ -9,10 +9,10 @@ export class HibanaClient {
 	public profile: ProfileAPI;
 	public repo: RepositoryAPI;
 
-	constructor(repository: string, publickey: string) {
-		this.event = new EventsAPI(repository, publickey);
-		this.feed = new FeedAPI(repository, publickey);
-		this.profile = new ProfileAPI(repository, publickey);
-		this.repo = new RepositoryAPI(repository, publickey);
+	constructor(repository: string) {
+		this.event = new EventsAPI(repository);
+		this.feed = new FeedAPI(repository);
+		this.profile = new ProfileAPI(repository);
+		this.repo = new RepositoryAPI(repository);
 	}
 }

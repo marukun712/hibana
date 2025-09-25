@@ -1,5 +1,5 @@
+import type { ReplyEvent } from "@hibana/client";
 import { IoReturnDownBack } from "solid-icons/io";
-import type { ReplyEvent } from "~/lib/client";
 import PinButton from "./button/pinButton";
 import ReplyButton from "./button/replyButton";
 import RepostButton from "./button/repostButton";

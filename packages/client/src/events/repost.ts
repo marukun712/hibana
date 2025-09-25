@@ -5,8 +5,8 @@ type RepostContent = { target: string };
 type QuoteRepostContent = { target: string; content: string };
 
 export class RepostAPI extends BaseEventAPI<"event.repost", RepostContent> {
-	constructor(repository: string, publickey: string) {
-		super(repository, publickey, "event.repost");
+	constructor(repository: string) {
+		super(repository, "event.repost");
 	}
 
 	async get(
@@ -16,21 +16,22 @@ export class RepostAPI extends BaseEventAPI<"event.repost", RepostContent> {
 	}
 
 	async list(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<"event.repost", RepostContent>[]> {
 		return await this.listEvents(params);
 	}
 
-	async post(content: RepostContent): Promise<string> {
+	async post(publickey: string, content: RepostContent): Promise<string> {
 		if (!content.target) {
 			throw new Error("リポスト対象が指定されていません。");
 		}
-		return await this.postEvent(content);
+		return await this.postEvent(publickey, content);
 	}
 
-	async delete(id: string): Promise<void> {
-		return await this.deleteEvent(id);
+	async delete(publickey: string, id: string): Promise<void> {
+		return await this.deleteEvent(publickey, id);
 	}
 }
 
@@ -38,8 +39,8 @@ export class QuoteRepostAPI extends BaseEventAPI<
 	"event.quote_repost",
 	QuoteRepostContent
 > {
-	constructor(repository: string, publickey: string) {
-		super(repository, publickey, "event.quote_repost");
+	constructor(repository: string) {
+		super(repository, "event.quote_repost");
 	}
 
 	async get(
@@ -49,13 +50,14 @@ export class QuoteRepostAPI extends BaseEventAPI<
 	}
 
 	async list(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<"event.quote_repost", QuoteRepostContent>[]> {
 		return await this.listEvents(params);
 	}
 
-	async post(content: QuoteRepostContent): Promise<string> {
+	async post(publickey: string, content: QuoteRepostContent): Promise<string> {
 		if (!content.content.trim()) {
 			throw new Error("引用リポスト内容が空です。");
 		}
@@ -63,13 +65,13 @@ export class QuoteRepostAPI extends BaseEventAPI<
 			throw new Error("引用リポスト対象が指定されていません。");
 		}
 
-		return await this.postEvent({
+		return await this.postEvent(publickey, {
 			...content,
 			content: content.content.trim(),
 		});
 	}
 
-	async delete(id: string): Promise<void> {
-		return await this.deleteEvent(id);
+	async delete(publickey: string, id: string): Promise<void> {
+		return await this.deleteEvent(publickey, id);
 	}
 }

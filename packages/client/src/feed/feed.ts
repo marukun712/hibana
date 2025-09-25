@@ -4,28 +4,26 @@ import { ReplyAPI } from "../events/reply";
 import { QuoteRepostAPI, RepostAPI } from "../events/repost";
 
 export class FeedAPI {
-	private repository: string;
 	private postAPI: PostAPI;
 	private replyAPI: ReplyAPI;
 	private repostAPI: RepostAPI;
 	private quoteRepostAPI: QuoteRepostAPI;
 	private followAPI: FollowAPI;
 
-	constructor(repository: string, publickey: string) {
-		this.repository = repository;
-		this.postAPI = new PostAPI(repository, publickey);
-		this.replyAPI = new ReplyAPI(repository, publickey);
-		this.repostAPI = new RepostAPI(repository, publickey);
-		this.quoteRepostAPI = new QuoteRepostAPI(repository, publickey);
-		this.followAPI = new FollowAPI(repository, publickey);
+	constructor(repository: string) {
+		this.postAPI = new PostAPI(repository);
+		this.replyAPI = new ReplyAPI(repository);
+		this.repostAPI = new RepostAPI(repository);
+		this.quoteRepostAPI = new QuoteRepostAPI(repository);
+		this.followAPI = new FollowAPI(repository);
 	}
 
-	async getPosts() {
+	async getPosts(params?: { publickey?: string }) {
 		const results = await Promise.all([
-			this.postAPI.list(),
-			this.repostAPI.list(),
-			this.quoteRepostAPI.list(),
-			this.replyAPI.list(),
+			this.postAPI.list(params),
+			this.repostAPI.list(params),
+			this.quoteRepostAPI.list(params),
+			this.replyAPI.list(params),
 		]);
 
 		const allPosts = results.flat();
@@ -36,16 +34,11 @@ export class FeedAPI {
 	}
 
 	async getUserPosts(publickey: string) {
-		const targetPostAPI = new PostAPI(this.repository, publickey);
-		const targetReplyAPI = new ReplyAPI(this.repository, publickey);
-		const targetRepostAPI = new RepostAPI(this.repository, publickey);
-		const targetQuoteRepostAPI = new QuoteRepostAPI(this.repository, publickey);
-
 		const results = await Promise.all([
-			targetPostAPI.list(),
-			targetReplyAPI.list(),
-			targetRepostAPI.list(),
-			targetQuoteRepostAPI.list(),
+			this.postAPI.list({ publickey }),
+			this.replyAPI.list({ publickey }),
+			this.repostAPI.list({ publickey }),
+			this.quoteRepostAPI.list({ publickey }),
 		]);
 
 		const allPosts = results.flat();
@@ -55,8 +48,8 @@ export class FeedAPI {
 		);
 	}
 
-	async getFollowingPosts() {
-		const follows = await this.followAPI.list();
+	async getFollowingPosts(publickey: string) {
+		const follows = await this.followAPI.list({ publickey });
 
 		const posts = await Promise.all(
 			follows.map((follow) =>
@@ -72,8 +65,8 @@ export class FeedAPI {
 			);
 	}
 
-	async getReplies(postId: string) {
-		const replies = await this.replyAPI.list({ id: postId });
+	async getReplies(postId: string, params?: { publickey?: string }) {
+		const replies = await this.replyAPI.list({ id: postId, ...params });
 		return replies.sort(
 			(a, b) =>
 				new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),

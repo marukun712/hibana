@@ -1,15 +1,18 @@
 import { debounce } from "@solid-primitives/scheduled";
 import { AiFillBook, AiOutlineBook } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
-import { client } from "~/lib/client";
+import { useAuth } from "~/contexts/authContext";
 
 export default function PinButton(props: { target: string }) {
 	const [pinned, setPinned] = createSignal(false);
 	const [pinnedId, setPinnedId] = createSignal<string | null>(null);
+	const { client: getClient, user } = useAuth();
+	const publickey = user()?.publickey;
 
 	async function post() {
-		const clientInstance = await client();
-		const eventId = await clientInstance.event.pin.post({
+		const clientInstance = getClient();
+		if (!clientInstance || !publickey) return;
+		const eventId = await clientInstance.event.pin.post(publickey, {
 			target: props.target,
 		});
 		if (eventId) {
@@ -20,9 +23,10 @@ export default function PinButton(props: { target: string }) {
 
 	async function remove() {
 		const id = pinnedId();
-		if (!id) return;
-		const clientInstance = await client();
-		await clientInstance.event.pin.delete(id);
+		if (!id || !publickey) return;
+		const clientInstance = getClient();
+		if (!clientInstance) return;
+		await clientInstance.event.pin.delete(publickey, id);
 		setPinned(false);
 		setPinnedId(null);
 	}
@@ -32,10 +36,9 @@ export default function PinButton(props: { target: string }) {
 
 	onMount(async () => {
 		try {
-			const clientInstance = await client();
-			const pins = await clientInstance.event.pin.list({
-				target: props.target,
-			});
+			const clientInstance = getClient();
+			if (!clientInstance || !publickey) return;
+			const pins = await clientInstance.event.pin.list({ publickey });
 			const pinRecord = pins.find((p) => p.message.target === props.target);
 			if (pinRecord) {
 				setPinned(true);

@@ -14,13 +14,13 @@ export class EventsAPI {
 	public pin: PinAPI;
 	public feed: FeedAPI;
 
-	constructor(repository: string, publickey: string) {
-		this.post = new PostAPI(repository, publickey);
-		this.reply = new ReplyAPI(repository, publickey);
-		this.repost = new RepostAPI(repository, publickey);
-		this.quoteRepost = new QuoteRepostAPI(repository, publickey);
-		this.follow = new FollowAPI(repository, publickey);
-		this.pin = new PinAPI(repository, publickey);
-		this.feed = new FeedAPI(repository, publickey);
+	constructor(repository: string) {
+		this.post = new PostAPI(repository);
+		this.reply = new ReplyAPI(repository);
+		this.repost = new RepostAPI(repository);
+		this.quoteRepost = new QuoteRepostAPI(repository);
+		this.follow = new FollowAPI(repository);
+		this.pin = new PinAPI(repository);
+		this.feed = new FeedAPI(repository);
 	}
 }

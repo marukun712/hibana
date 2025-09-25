@@ -8,22 +8,21 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 	implements EventAPI<TName, TContent>
 {
 	protected repository: string;
-	protected publickey: string;
 	readonly name: TName;
 
-	constructor(repository: string, publickey: string, name: TName) {
+	constructor(repository: string, name: TName) {
 		this.repository = repository;
-		this.publickey = publickey;
 		this.name = name;
 	}
 
 	abstract get(id: string): Promise<eventReturnType<TName, TContent>>;
 	abstract list(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<TName, TContent>[]>;
-	abstract post(content: TContent): Promise<string>;
-	abstract delete(id: string): Promise<void>;
+	abstract post(publickey: string, content: TContent): Promise<string>;
+	abstract delete(publickey: string, id: string): Promise<void>;
 
 	private async handleResponse<T>(res: Response): Promise<T> {
 		const json = await res.json();
@@ -42,14 +41,17 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 	}
 
 	protected async listEvents(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<TName, TContent>[]> {
 		const client = hc<feedRouteType>(this.repository);
 		const query: Record<string, string> = {
-			publickey: this.publickey,
 			event: this.name,
 		};
+		if (params?.publickey) {
+			query.publickey = params.publickey;
+		}
 		if (params?.id) {
 			query.id = params.id;
 		}
@@ -60,14 +62,17 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 		return this.handleResponse(res);
 	}
 
-	protected async postEvent(content: TContent): Promise<string> {
+	protected async postEvent(
+		publickey: string,
+		content: TContent,
+	): Promise<string> {
 		const client = hc<eventRouteType>(this.repository);
 		const message = await createSecureMessage<TName, TContent>(
 			{
 				event: this.name,
 				timestamp: new Date().toISOString(),
 				message: content,
-				publickey: this.publickey,
+				publickey: publickey,
 			},
 			calculateHash,
 		);
@@ -76,7 +81,7 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 		return json.id;
 	}
 
-	protected async deleteEvent(id: string): Promise<void> {
+	protected async deleteEvent(publickey: string, id: string): Promise<void> {
 		const client = hc<eventRouteType>(this.repository);
 		const message = await createSecureMessage<
 			"event.delete",
@@ -86,7 +91,7 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 				event: "event.delete",
 				timestamp: new Date().toISOString(),
 				message: { target: id },
-				publickey: this.publickey,
+				publickey: publickey,
 			},
 			calculateHash,
 		);
@@ -97,9 +102,10 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 export interface EventAPI<TName extends string, TContent> {
 	get(id: string): Promise<eventReturnType<TName, TContent>>;
 	list(params?: {
+		publickey?: string;
 		id?: string;
 		target?: string;
 	}): Promise<eventReturnType<TName, TContent>[]>;
-	post(content: TContent): Promise<string>;
-	delete(id: string): Promise<void>;
+	post(publickey: string, content: TContent): Promise<string>;
+	delete(publickey: string, id: string): Promise<void>;
 }

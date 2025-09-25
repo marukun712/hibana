@@ -14,8 +14,8 @@ export async function fromLatest(
 	repository: string,
 	publickey: string,
 ): Promise<void> {
-	const client = new HibanaClient(repository, publickey);
-	const latestData = await client.repo.get();
+	const client = new HibanaClient(repository);
+	const latestData = await client.repo.get({ publickey });
 	await executeMigration(latestData);
 }
 

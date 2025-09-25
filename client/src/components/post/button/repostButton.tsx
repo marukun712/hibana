@@ -1,26 +1,30 @@
+import type { PostEvent } from "@hibana/client";
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
-import { client, type PostEvent } from "~/lib/client";
+import { useAuth } from "~/contexts/authContext";
 import QuoteRepostModal from "../modal/quoteRepostModal";
 
 export default function RepostButton(props: {
 	target: string;
 	originalPost: PostEvent;
 }) {
+	const { client: getClient, user } = useAuth();
+	const publickey = user()?.publickey;
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);
 	const [showQuoteModal, setShowQuoteModal] = createSignal(false);
 
 	async function repost() {
-		const clientInstance = await client();
+		const clientInstance = getClient();
+		if (!clientInstance || !publickey) return;
 		if (reposted()) {
 			const id = repostId();
 			if (!id) return;
-			await clientInstance.event.repost.delete(id);
+			await clientInstance.event.repost.delete(publickey, id);
 			setReposted(false);
 			setRepostId(null);
 		} else {
-			const eventId = await clientInstance.event.repost.post({
+			const eventId = await clientInstance.event.repost.post(publickey, {
 				target: props.originalPost.id,
 			});
 			if (eventId) {
@@ -32,10 +36,9 @@ export default function RepostButton(props: {
 
 	onMount(async () => {
 		try {
-			const clientInstance = await client();
-			const reposts = await clientInstance.event.repost.list({
-				target: props.originalPost.id,
-			});
+			const clientInstance = getClient();
+			if (!clientInstance || !publickey) return;
+			const reposts = await clientInstance.event.repost.list({ publickey });
 			const repostRecord = reposts.find(
 				(r) => r.message.target === props.originalPost.id,
 			);

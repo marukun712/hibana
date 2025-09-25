@@ -1,7 +1,7 @@
-import type { profileType } from "@hibana/schema/Profile";
+import type { profileType } from "@hibana/schema";
 import { useSearchParams } from "@solidjs/router";
 import { createSignal, onMount, Show } from "solid-js";
-import { client } from "~/lib/client";
+import { useAuth } from "~/contexts/authContext";
 import Feed from "../feed/feed";
 import Loading from "../ui/loading";
 import FollowButton from "./button/followButton";
@@ -9,16 +9,28 @@ import FollowButton from "./button/followButton";
 type ProfileType = profileType & { followCount: number; followerCount: number };
 
 export default function ProfileCard() {
+	const { client: getClient, user: profile } = useAuth();
+	const currentUserPublickey = profile()?.publickey;
 	const [user, setUser] = createSignal<ProfileType>();
 	const [searchParams] = useSearchParams();
 
 	onMount(async () => {
 		const publickey = searchParams.publickey as string;
-		const clientInstance = await client();
+		const clientInstance = getClient();
+		if (!clientInstance) return;
+
 		const data = await clientInstance.profile.get(publickey);
 
-		const follows = await clientInstance.event.follow.list();
-		const followers = await clientInstance.event.follow.list();
+		const follows = currentUserPublickey
+			? await clientInstance.event.follow.list({
+					publickey: currentUserPublickey,
+				})
+			: [];
+		const followers = currentUserPublickey
+			? await clientInstance.event.follow.list({
+					publickey: currentUserPublickey,
+				})
+			: [];
 
 		setUser({
 			...data,

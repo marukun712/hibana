@@ -1,5 +1,6 @@
+import type { unknownSchemaType } from "@hibana/schema";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
-import { client, type FeedItem } from "~/lib/client";
+import { useAuth } from "~/contexts/authContext";
 import { renderPost } from "../post/postDetail";
 import Loading from "../ui/loading";
 
@@ -7,7 +8,9 @@ export default function Feed(props: {
 	user?: string;
 	feedType?: "all" | "following";
 }) {
-	const [posts, setPosts] = createSignal<FeedItem[]>([]);
+	const { client: getClient, user } = useAuth();
+	const publickey = user()?.publickey;
+	const [posts, setPosts] = createSignal<unknownSchemaType[]>([]);
 	const [loading, setLoading] = createSignal(true);
 	const [error, setError] = createSignal<string | null>(null);
 	const [text, setText] = createSignal("");
@@ -16,12 +19,20 @@ export default function Feed(props: {
 	const fetchPosts = async () => {
 		setLoading(true);
 		try {
-			const clientInstance = await client();
+			const clientInstance = getClient();
+			if (!clientInstance) {
+				setError("クライアントが初期化されていません。");
+				return;
+			}
 			if (props.user) {
 				const data = await clientInstance.feed.getUserPosts(props.user);
 				setPosts(data);
 			} else if (props.feedType === "following") {
-				const data = await clientInstance.feed.getFollowingPosts();
+				if (!publickey) {
+					setError("認証が必要です。");
+					return;
+				}
+				const data = await clientInstance.feed.getFollowingPosts(publickey);
 				setPosts(data);
 			} else {
 				const data = await clientInstance.feed.getPosts();
@@ -46,8 +57,18 @@ export default function Feed(props: {
 
 		setIsSubmitting(true);
 		try {
-			const clientInstance = await client();
-			await clientInstance.event.post.post({ content: text().trim() });
+			const clientInstance = getClient();
+			if (!clientInstance) {
+				setError("クライアントが初期化されていません。");
+				return;
+			}
+			if (!publickey) {
+				setError("認証が必要です。");
+				return;
+			}
+			await clientInstance.event.post.post(publickey, {
+				content: text().trim(),
+			});
 			setText("");
 			await fetchPosts();
 		} catch (err) {
