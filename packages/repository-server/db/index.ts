@@ -1,4 +1,4 @@
-import type { getSchemaType, unknownSchemaType } from "@hibana/schema";
+import type { baseSchemaType, getSchemaType } from "@hibana/schema";
 import { verifySecureMessage } from "@hibana/utils";
 import { eq } from "drizzle-orm";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
@@ -22,7 +22,7 @@ export const getEvent = async (json: getSchemaType) => {
 	if (!post) throw new Error("Event is not found");
 
 	const verify = await verifySecureMessage(
-		post as unknownSchemaType,
+		post as baseSchemaType,
 		calculateHash,
 	);
 	if (!verify) throw new Error("Verify failed");
@@ -36,7 +36,7 @@ export const getAllEvents = async (publickey: string) => {
 	return data;
 };
 
-export const putEvent = async (json: unknownSchemaType) => {
+export const putEvent = async (json: baseSchemaType) => {
 	const db = getDB(json.publickey);
 	await db.insert(events).values(json);
 };

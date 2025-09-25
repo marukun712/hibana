@@ -1,4 +1,5 @@
 import {
+	baseEventSchema,
 	deleteEventSchema,
 	eventRequestSchema,
 	feedRequestSchema,
@@ -7,7 +8,6 @@ import {
 	profileRequestSchema,
 	profileSchema,
 	repoRequestSchema,
-	unknownEventSchema,
 } from "@hibana/schema";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
@@ -134,7 +134,7 @@ const eventRoute = app
 	.post(
 		"/event",
 		validator("json", (value, c) => {
-			const parsed = unknownEventSchema.safeParse(value);
+			const parsed = baseEventSchema.safeParse(value);
 			if (!parsed.success) {
 				return c.json({ error: "Invalid Schema." }, 400);
 			}

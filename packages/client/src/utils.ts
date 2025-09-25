@@ -1,4 +1,4 @@
-import type { unknownSchemaType } from "@hibana/schema";
+import type { baseSchemaType } from "@hibana/schema";
 import type {
 	FollowEvent,
 	PinEvent,
@@ -8,21 +8,21 @@ import type {
 	RepostEvent,
 } from "./types";
 
-export const isPostEvent = (item: unknownSchemaType): item is PostEvent =>
+export const isPostEvent = (item: baseSchemaType): item is PostEvent =>
 	item.event === "event.post";
 
-export const isReplyEvent = (item: unknownSchemaType): item is ReplyEvent =>
+export const isReplyEvent = (item: baseSchemaType): item is ReplyEvent =>
 	item.event === "event.reply";
 
-export const isRepostEvent = (item: unknownSchemaType): item is RepostEvent =>
+export const isRepostEvent = (item: baseSchemaType): item is RepostEvent =>
 	item.event === "event.repost";
 
 export const isQuoteRepostEvent = (
-	item: unknownSchemaType,
+	item: baseSchemaType,
 ): item is QuoteRepostEvent => item.event === "event.quote_repost";
 
-export const isFollowEvent = (item: unknownSchemaType): item is FollowEvent =>
+export const isFollowEvent = (item: baseSchemaType): item is FollowEvent =>
 	item.event === "event.follow";
 
-export const isPinEvent = (item: unknownSchemaType): item is PinEvent =>
+export const isPinEvent = (item: baseSchemaType): item is PinEvent =>
 	item.event === "event.pin";

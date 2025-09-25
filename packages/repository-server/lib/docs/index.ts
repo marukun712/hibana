@@ -1,11 +1,11 @@
 import {
 	allDataSchema,
+	baseEventSchema,
+	type baseSchemaType,
 	type deleteSchemaType,
 	documentSchema,
 	type documentType,
 	searchResult,
-	unknownEventSchema,
-	type unknownSchemaType,
 } from "@hibana/schema";
 import { isCID, verifySecureMessage } from "@hibana/utils";
 import { hc } from "hono/client";
@@ -74,7 +74,7 @@ export const resolveRepositoryDoc = async (document: documentType) => {
 	});
 	if (data.status !== 200) return null;
 	const json = await data.json();
-	const parsedEvent = unknownEventSchema.safeParse(json);
+	const parsedEvent = baseEventSchema.safeParse(json);
 	if (!parsedEvent.success) {
 		console.error("Event schema validation failed:", parsedEvent.error);
 		return null;
@@ -118,10 +118,10 @@ export const getDoc = async (id: string) => {
 	return { ...record, target: targetRecord };
 };
 
-export const putDoc = async (event: unknownSchemaType) => {
+export const putDoc = async (event: baseSchemaType) => {
 	//データの検証
 	const verify = await verifySecureMessage(event, calculateHash);
-	const parsedEvent = unknownEventSchema.safeParse(event);
+	const parsedEvent = baseEventSchema.safeParse(event);
 	if (!parsedEvent.success) {
 		console.error("Event schema validation failed:", parsedEvent.error);
 		throw new Error("Validation failed");

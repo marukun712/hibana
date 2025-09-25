@@ -1,26 +1,22 @@
-import type { eventReturnType } from "@hibana/schema";
+import type { ReplyEvent } from "../types";
 import { BaseEventAPI } from "./base";
 
 type Content = { target: string; content: string };
 
-export class ReplyAPI extends BaseEventAPI<"event.reply", Content> {
+export class ReplyAPI extends BaseEventAPI<"event.reply", Content, ReplyEvent> {
 	constructor(repository: string) {
 		super(repository, "event.reply");
 	}
 
-	async get(id: string): Promise<eventReturnType<"event.reply", Content>> {
+	async get(id: string) {
 		return await this.getEvent(id);
 	}
 
-	async list(params?: {
-		publickey?: string;
-		id?: string;
-		target?: string;
-	}): Promise<eventReturnType<"event.reply", Content>[]> {
+	async list(params?: { publickey?: string; id?: string; target?: string }) {
 		return await this.listEvents(params);
 	}
 
-	async post(publickey: string, content: Content): Promise<string> {
+	async post(publickey: string, content: Content) {
 		if (!content.content.trim()) {
 			throw new Error("リプライ内容が空です。");
 		}
@@ -34,7 +30,7 @@ export class ReplyAPI extends BaseEventAPI<"event.reply", Content> {
 		});
 	}
 
-	async delete(publickey: string, id: string): Promise<void> {
+	async delete(publickey: string, id: string) {
 		return await this.deleteEvent(publickey, id);
 	}
 }

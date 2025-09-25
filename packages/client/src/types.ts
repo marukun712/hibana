@@ -1,14 +1,28 @@
-import type { eventReturnType } from "@hibana/schema";
+import type { feedReturnType, profileType } from "@hibana/schema";
 
-export type PostEvent = eventReturnType<"event.post", { content: string }>;
-export type ReplyEvent = eventReturnType<
+export type PostEvent = feedReturnType<"event.post", { content: string }>;
+export type ReplyEvent = feedReturnType<
 	"event.reply",
-	{ target: string; content: string }
+	{ target: string; content: string },
+	PostEvent & { user: profileType }
 >;
-export type RepostEvent = eventReturnType<"event.repost", { target: string }>;
-export type QuoteRepostEvent = eventReturnType<
+export type RepostEvent = feedReturnType<
+	"event.repost",
+	{ target: string },
+	PostEvent & { user: profileType }
+>;
+export type QuoteRepostEvent = feedReturnType<
 	"event.quote_repost",
-	{ target: string; content: string }
+	{ target: string; content: string },
+	PostEvent & { user: profileType }
 >;
-export type FollowEvent = eventReturnType<"event.follow", { target: string }>;
-export type PinEvent = eventReturnType<"event.pin", { target: string }>;
+export type FollowEvent = feedReturnType<
+	"event.follow",
+	{ target: string },
+	profileType
+>;
+export type PinEvent = feedReturnType<
+	"event.pin",
+	{ target: string },
+	profileType
+>;

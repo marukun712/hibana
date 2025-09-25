@@ -23,7 +23,7 @@ export type eventType<T, U> = {
 	message: U;
 };
 
-export type eventReturnType<T, U> = {
+export type feedReturnType<T, U, V = null> = {
 	id: string;
 	publickey: string;
 	signature: string;
@@ -31,10 +31,10 @@ export type eventReturnType<T, U> = {
 	timestamp: string;
 	message: U;
 	user: profileType;
-	target: unknownSchemaType & { user: profileType };
+	target: V extends null ? null : V;
 };
 
-export const unknownEventSchema = eventSchema(z.string(), z.any());
+export const baseEventSchema = eventSchema(z.string(), z.unknown());
 
 export const deleteEventSchema = eventSchema(
 	z.literal("event.delete"),
@@ -47,10 +47,10 @@ export const migrateEventSchema = eventSchema(
 	z.literal("event.migrate"),
 	z.object({
 		url: z.string(),
-		body: z.array(eventSchema(z.string(), z.record(z.string(), z.unknown()))),
+		body: z.array(baseEventSchema),
 	}),
 );
 
-export type unknownSchemaType = z.infer<typeof unknownEventSchema>;
+export type baseSchemaType = z.infer<typeof baseEventSchema>;
 export type deleteSchemaType = z.infer<typeof deleteEventSchema>;
 export type migrateSchemaType = z.infer<typeof migrateEventSchema>;

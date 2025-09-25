@@ -1,4 +1,4 @@
-import type { eventType, profileType, unknownSchemaType } from "@hibana/schema";
+import type { baseSchemaType, eventType, profileType } from "@hibana/schema";
 import { schnorr } from "@noble/curves/secp256k1.js";
 import * as secp256k1 from "@noble/secp256k1";
 
@@ -54,7 +54,7 @@ export async function createSecureMessage<T, U>(
 ): Promise<eventType<T, U>> {
 	const { event, timestamp, message, publickey } = params;
 	if (!publickey) {
-		throw new Error("公開鍵が不正です");
+		throw new Error("Invalid public key");
 	}
 	const json = JSON.stringify({ event, timestamp, message });
 	const messageHash = await calculateHash(json);
@@ -70,7 +70,7 @@ export async function createSecureMessage<T, U>(
 }
 
 export async function verifySecureMessage(
-	data: unknownSchemaType,
+	data: baseSchemaType,
 	calculateHash: HashFunction,
 ): Promise<boolean> {
 	const { id, publickey, signature, event, timestamp, message } = data;
@@ -104,7 +104,7 @@ export async function createUserDoc(
 		updatedAt,
 	});
 	if (!publickey) {
-		throw new Error("公開鍵が不正です");
+		throw new Error("Invalid public key");
 	}
 	const messageHash = await calculateHash(json);
 	const signature = await signMessage(json, calculateHash);

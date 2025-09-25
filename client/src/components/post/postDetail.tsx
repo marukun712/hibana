@@ -4,7 +4,7 @@ import {
 	isReplyEvent,
 	isRepostEvent,
 } from "@hibana/client";
-import type { unknownSchemaType } from "@hibana/schema";
+import type { baseSchemaType } from "@hibana/schema";
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import { useAuth } from "~/contexts/authContext";
@@ -14,7 +14,7 @@ import QuoteRepost from "./quoteRepost";
 import Reply from "./reply";
 import RepostedPost from "./repostedPost";
 
-export const renderPost = (item: unknownSchemaType) => {
+export const renderPost = (item: baseSchemaType) => {
 	if (isPostEvent(item)) {
 		return <Post post={item} />;
 	}
@@ -32,8 +32,8 @@ export const renderPost = (item: unknownSchemaType) => {
 
 export default function PostDetail() {
 	const [searchParams] = useSearchParams();
-	const [post, setPost] = createSignal<unknownSchemaType | null>(null);
-	const [replies, setReplies] = createSignal<unknownSchemaType[]>([]);
+	const [post, setPost] = createSignal<baseSchemaType | null>(null);
+	const [replies, setReplies] = createSignal<baseSchemaType[]>([]);
 	const [error, setError] = createSignal<string | null>(null);
 	const [replyText, setReplyText] = createSignal("");
 	const [isSubmittingReply, setIsSubmittingReply] = createSignal(false);

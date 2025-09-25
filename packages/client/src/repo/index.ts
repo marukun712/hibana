@@ -1,8 +1,5 @@
 import type { repoRouteType } from "@hibana/repository-server";
-import {
-	unknownEventSchema,
-	type unknownSchemaType,
-} from "@hibana/schema/Event";
+import { baseEventSchema, type baseSchemaType } from "@hibana/schema/Event";
 import { hc } from "hono/client";
 import { z } from "zod";
 
@@ -13,7 +10,7 @@ export class RepositoryAPI {
 		this.repository = repository;
 	}
 
-	async get(params: { publickey: string }): Promise<unknownSchemaType[]> {
+	async get(params: { publickey: string }): Promise<baseSchemaType[]> {
 		const client = hc<repoRouteType>(this.repository);
 		const response = await client.repo.$get({
 			query: { publickey: params.publickey },
@@ -22,7 +19,7 @@ export class RepositoryAPI {
 			throw new Error("リポジトリデータの取得に失敗しました");
 		}
 		const json = await response.json();
-		const parsed = z.array(unknownEventSchema).safeParse(json);
+		const parsed = z.array(baseEventSchema).safeParse(json);
 		if (!parsed.success) {
 			throw new Error("リポジトリデータのスキーマが不正です。");
 		}

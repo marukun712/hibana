@@ -1,4 +1,4 @@
-import { unknownEventSchema, type unknownSchemaType } from "@hibana/schema";
+import { baseEventSchema, type baseSchemaType } from "@hibana/schema";
 import z from "zod";
 
 export interface BackupFile {
@@ -52,7 +52,7 @@ export async function deleteBackup(filename: string): Promise<void> {
 
 export async function getBackupData(
 	filename: string,
-): Promise<unknownSchemaType[]> {
+): Promise<baseSchemaType[]> {
 	const opfsRoot = await navigator.storage.getDirectory();
 	const backupDir = await opfsRoot.getDirectoryHandle("backups", {
 		create: true,
@@ -63,7 +63,7 @@ export async function getBackupData(
 	const text = await file.text();
 
 	const json = JSON.parse(text);
-	const parsed = z.array(unknownEventSchema).safeParse(json);
+	const parsed = z.array(baseEventSchema).safeParse(json);
 	if (!parsed.success) {
 		throw new Error("リポジトリデータのスキーマが不正です。");
 	}

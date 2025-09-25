@@ -1,7 +1,7 @@
 import {
+	baseEventSchema,
+	type baseSchemaType,
 	type migrateSchemaType,
-	unknownEventSchema,
-	type unknownSchemaType,
 } from "@hibana/schema";
 import { verifySecureMessage } from "@hibana/utils";
 import { deleteAllEvents, putEvent } from "../../db/index";
@@ -23,10 +23,10 @@ export const migrateRepo = async (event: migrateSchemaType) => {
 	updateUser({ ...profile, repository: event.message.url });
 };
 
-export const migrateDoc = async (event: unknownSchemaType) => {
+export const migrateDoc = async (event: baseSchemaType) => {
 	//データの検証
 	const verify = await verifySecureMessage(event, calculateHash);
-	const parsedEvent = unknownEventSchema.safeParse(event);
+	const parsedEvent = baseEventSchema.safeParse(event);
 	if (!parsedEvent.success) {
 		console.error("Event schema validation failed:", parsedEvent.error);
 		throw new Error("Validation failed");
