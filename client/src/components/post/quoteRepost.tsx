@@ -1,10 +1,10 @@
 import { AiOutlineEdit } from "solid-icons/ai";
-import type { PostData, QuoteRepostEvent } from "~/types/feed";
+import type { PostEvent, QuoteRepostEvent } from "~/lib/client";
 import Post from "./post";
 
 export default function QuoteRepost(props: {
 	quote: QuoteRepostEvent;
-	originalPost: PostData;
+	originalPost: PostEvent;
 }) {
 	return (
 		<div class="card bg-base-100 border border-base-300 p-4 mb-4 hover:shadow-md transition-shadow">

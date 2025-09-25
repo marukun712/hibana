@@ -1,8 +1,7 @@
 import type { profileType } from "@hibana/schema/Profile";
 import { useSearchParams } from "@solidjs/router";
 import { createSignal, onMount, Show } from "solid-js";
-import { client } from "../../lib/client";
-import { getCurrentUser, userAPI } from "../../lib/user";
+import { client } from "~/lib/client";
 import Feed from "../feed/feed";
 import Loading from "../ui/loading";
 import FollowButton from "./button/followButton";
@@ -15,17 +14,11 @@ export default function ProfileCard() {
 
 	onMount(async () => {
 		const publickey = searchParams.publickey as string;
-		const currentUser = await getCurrentUser();
-		const data = await userAPI.getProfile(publickey);
+		const clientInstance = await client();
+		const data = await clientInstance.profile.get(publickey);
 
-		const follows = await client.social.follow.getFollows(
-			publickey,
-			currentUser.repository,
-		);
-		const followers = await client.social.follow.getFollowers(
-			publickey,
-			currentUser.repository,
-		);
+		const follows = await clientInstance.event.follow.list();
+		const followers = await clientInstance.event.follow.list();
 
 		setUser({
 			...data,

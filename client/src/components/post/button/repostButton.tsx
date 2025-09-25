@@ -1,27 +1,28 @@
-import { createClient } from "@hibana/client";
 import { AiOutlineEdit, AiOutlineRetweet } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
-import type { PostData } from "~/types/feed";
+import { client, type PostEvent } from "~/lib/client";
 import QuoteRepostModal from "../modal/quoteRepostModal";
 
 export default function RepostButton(props: {
 	target: string;
-	originalPost: PostData;
+	originalPost: PostEvent;
 }) {
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);
 	const [showQuoteModal, setShowQuoteModal] = createSignal(false);
-	const client = createClient();
 
 	async function repost() {
+		const clientInstance = await client();
 		if (reposted()) {
 			const id = repostId();
 			if (!id) return;
-			await client.social.repost.delete(id);
+			await clientInstance.event.repost.delete(id);
 			setReposted(false);
 			setRepostId(null);
 		} else {
-			const eventId = await client.social.repost.add(props.originalPost.id);
+			const eventId = await clientInstance.event.repost.post({
+				target: props.originalPost.id,
+			});
 			if (eventId) {
 				setReposted(true);
 				setRepostId(eventId);
@@ -30,12 +31,20 @@ export default function RepostButton(props: {
 	}
 
 	onMount(async () => {
-		const result = await client.social.repost.checkStatus(
-			props.originalPost.id,
-		);
-		if (result.isReposted) {
-			setReposted(true);
-			setRepostId(result.id);
+		try {
+			const clientInstance = await client();
+			const reposts = await clientInstance.event.repost.list({
+				target: props.originalPost.id,
+			});
+			const repostRecord = reposts.find(
+				(r) => r.message.target === props.originalPost.id,
+			);
+			if (repostRecord) {
+				setReposted(true);
+				setRepostId(repostRecord.id);
+			}
+		} catch (err) {
+			console.error("リポスト状態の確認中にエラー:", err);
 		}
 	});
 

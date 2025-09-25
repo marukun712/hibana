@@ -1,5 +1,5 @@
 import type { eventRouteType, feedRouteType } from "@hibana/repository-server";
-import type { eventType } from "@hibana/schema";
+import type { eventReturnType } from "@hibana/schema";
 import { createSecureMessage } from "@hibana/utils";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
@@ -17,11 +17,11 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 		this.name = name;
 	}
 
-	abstract get(id: string): Promise<eventType<TName, TContent>>;
-	abstract list(
-		id?: string,
-		target?: string,
-	): Promise<eventType<TName, TContent>[]>;
+	abstract get(id: string): Promise<eventReturnType<TName, TContent>>;
+	abstract list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<TName, TContent>[]>;
 	abstract post(content: TContent): Promise<string>;
 	abstract delete(id: string): Promise<void>;
 
@@ -33,26 +33,36 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 		return json;
 	}
 
-	protected async getEvent(id: string): Promise<eventType<TName, TContent>> {
+	protected async getEvent(
+		id: string,
+	): Promise<eventReturnType<TName, TContent>> {
 		const client = hc<eventRouteType>(this.repository);
 		const res = await client.event.$get({ query: { id } });
 		return this.handleResponse(res);
 	}
 
-	protected async listEvents(
-		id?: string,
-		target?: string,
-	): Promise<eventType<TName, TContent>[]> {
+	protected async listEvents(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<TName, TContent>[]> {
 		const client = hc<feedRouteType>(this.repository);
-		const res = await client.feed.$get({
-			query: { id, target, publickey: this.publickey, event: this.name },
-		});
+		const query: Record<string, string> = {
+			publickey: this.publickey,
+			event: this.name,
+		};
+		if (params?.id) {
+			query.id = params.id;
+		}
+		if (params?.target) {
+			query.target = params.target;
+		}
+		const res = await client.feed.$get({ query });
 		return this.handleResponse(res);
 	}
 
 	protected async postEvent(content: TContent): Promise<string> {
 		const client = hc<eventRouteType>(this.repository);
-		const message = await createSecureMessage<TContent>(
+		const message = await createSecureMessage<TName, TContent>(
 			{
 				event: this.name,
 				timestamp: new Date().toISOString(),
@@ -68,7 +78,10 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 
 	protected async deleteEvent(id: string): Promise<void> {
 		const client = hc<eventRouteType>(this.repository);
-		const message = await createSecureMessage(
+		const message = await createSecureMessage<
+			"event.delete",
+			{ target: string }
+		>(
 			{
 				event: "event.delete",
 				timestamp: new Date().toISOString(),
@@ -82,8 +95,11 @@ export abstract class BaseEventAPI<TName extends string, TContent>
 }
 
 export interface EventAPI<TName extends string, TContent> {
-	get(id: string): Promise<eventType<TName, TContent>>;
-	list(id?: string, target?: string): Promise<eventType<TName, TContent>[]>;
+	get(id: string): Promise<eventReturnType<TName, TContent>>;
+	list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<TName, TContent>[]>;
 	post(content: TContent): Promise<string>;
 	delete(id: string): Promise<void>;
 }

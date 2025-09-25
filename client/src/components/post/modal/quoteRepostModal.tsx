@@ -1,17 +1,15 @@
-import { createClient } from "@hibana/client";
 import { AiOutlineClose } from "solid-icons/ai";
 import { createSignal, Show } from "solid-js";
-import type { PostData } from "~/types/feed";
+import { client, type PostEvent } from "~/lib/client";
 
 export default function QuoteRepostModal(props: {
-	originalPost: PostData;
+	originalPost: PostEvent;
 	isOpen: () => boolean;
 	onClose: () => void;
 	onSuccess: () => void;
 }) {
 	const [text, setText] = createSignal("");
 	const [posting, setPosting] = createSignal(false);
-	const client = createClient();
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
@@ -19,10 +17,11 @@ export default function QuoteRepostModal(props: {
 
 		setPosting(true);
 		try {
-			await client.event.post.createQuoteRepost(
-				props.originalPost.id,
-				text().trim(),
-			);
+			const clientInstance = await client();
+			await clientInstance.event.quoteRepost.post({
+				target: props.originalPost.id,
+				content: text().trim(),
+			});
 			setText("");
 			props.onSuccess();
 			props.onClose();

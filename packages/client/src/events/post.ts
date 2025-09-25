@@ -1,4 +1,4 @@
-import type { eventType } from "@hibana/schema";
+import type { eventReturnType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
 type Content = { content: string };
@@ -8,15 +8,15 @@ export class PostAPI extends BaseEventAPI<"event.post", Content> {
 		super(repository, publickey, "event.post");
 	}
 
-	async get(id: string): Promise<eventType<"event.post", Content>> {
+	async get(id: string): Promise<eventReturnType<"event.post", Content>> {
 		return await this.getEvent(id);
 	}
 
-	async list(
-		id?: string,
-		target?: string,
-	): Promise<eventType<"event.post", Content>[]> {
-		return await this.listEvents(id, target);
+	async list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<"event.post", Content>[]> {
+		return await this.listEvents(params);
 	}
 
 	async post(content: Content): Promise<string> {

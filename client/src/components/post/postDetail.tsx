@@ -1,13 +1,13 @@
-import { createClient } from "@hibana/client";
 import { useSearchParams } from "@solidjs/router";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
-import type { FeedItem } from "~/types/feed";
 import {
+	client,
+	type FeedItem,
 	isPostEvent,
 	isQuoteRepostEvent,
 	isReplyEvent,
 	isRepostEvent,
-} from "~/types/feed";
+} from "~/lib/client";
 import Loading from "../ui/loading";
 import Post from "./post";
 import QuoteRepost from "./quoteRepost";
@@ -37,7 +37,6 @@ export default function PostDetail() {
 	const [error, setError] = createSignal<string | null>(null);
 	const [replyText, setReplyText] = createSignal("");
 	const [isSubmittingReply, setIsSubmittingReply] = createSignal(false);
-	const client = createClient();
 
 	const fetchPosts = async () => {
 		const postId = searchParams.id as string;
@@ -46,9 +45,10 @@ export default function PostDetail() {
 			return;
 		}
 		try {
-			const postData = await client.event.post.getPostById(postId);
-			setPost(postData);
-			const repliesData = await client.event.reply.getReplies(postId);
+			const clientInstance = await client();
+			const PostEvent = await clientInstance.feed.getPostById(postId);
+			setPost(PostEvent);
+			const repliesData = await clientInstance.feed.getReplies(postId);
 			setReplies(repliesData);
 		} catch (err) {
 			console.error("投稿の取得中にエラーが発生しました:", err);
@@ -68,9 +68,13 @@ export default function PostDetail() {
 
 		setIsSubmittingReply(true);
 		try {
-			await client.event.reply.add(currentPost.id, replyText().trim());
+			const clientInstance = await client();
+			await clientInstance.event.reply.post({
+				target: currentPost.id,
+				content: replyText().trim(),
+			});
 			setReplyText("");
-			const repliesData = await client.event.reply.getReplies(currentPost.id);
+			const repliesData = await clientInstance.feed.getReplies(currentPost.id);
 			setReplies(repliesData);
 		} catch (error) {
 			console.error("リプライ中にエラーが発生しました:", error);

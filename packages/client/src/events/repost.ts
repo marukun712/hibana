@@ -1,4 +1,4 @@
-import type { eventType } from "@hibana/schema";
+import type { eventReturnType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
 type RepostContent = { target: string };
@@ -9,15 +9,17 @@ export class RepostAPI extends BaseEventAPI<"event.repost", RepostContent> {
 		super(repository, publickey, "event.repost");
 	}
 
-	async get(id: string): Promise<eventType<"event.repost", RepostContent>> {
+	async get(
+		id: string,
+	): Promise<eventReturnType<"event.repost", RepostContent>> {
 		return await this.getEvent(id);
 	}
 
-	async list(
-		id?: string,
-		target?: string,
-	): Promise<eventType<"event.repost", RepostContent>[]> {
-		return await this.listEvents(id, target);
+	async list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<"event.repost", RepostContent>[]> {
+		return await this.listEvents(params);
 	}
 
 	async post(content: RepostContent): Promise<string> {
@@ -42,15 +44,15 @@ export class QuoteRepostAPI extends BaseEventAPI<
 
 	async get(
 		id: string,
-	): Promise<eventType<"event.quote_repost", QuoteRepostContent>> {
+	): Promise<eventReturnType<"event.quote_repost", QuoteRepostContent>> {
 		return await this.getEvent(id);
 	}
 
-	async list(
-		id?: string,
-		target?: string,
-	): Promise<eventType<"event.quote_repost", QuoteRepostContent>[]> {
-		return await this.listEvents(id, target);
+	async list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<"event.quote_repost", QuoteRepostContent>[]> {
+		return await this.listEvents(params);
 	}
 
 	async post(content: QuoteRepostContent): Promise<string> {

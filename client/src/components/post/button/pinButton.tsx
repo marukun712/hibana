@@ -1,15 +1,17 @@
-import { createClient } from "@hibana/client";
 import { debounce } from "@solid-primitives/scheduled";
 import { AiFillBook, AiOutlineBook } from "solid-icons/ai";
 import { createSignal, onMount } from "solid-js";
+import { client } from "~/lib/client";
 
 export default function PinButton(props: { target: string }) {
 	const [pinned, setPinned] = createSignal(false);
 	const [pinnedId, setPinnedId] = createSignal<string | null>(null);
-	const client = createClient();
 
 	async function post() {
-		const eventId = await client.social.pin.add(props.target);
+		const clientInstance = await client();
+		const eventId = await clientInstance.event.pin.post({
+			target: props.target,
+		});
 		if (eventId) {
 			setPinned(true);
 			setPinnedId(eventId);
@@ -19,7 +21,8 @@ export default function PinButton(props: { target: string }) {
 	async function remove() {
 		const id = pinnedId();
 		if (!id) return;
-		await client.social.pin.delete(id);
+		const clientInstance = await client();
+		await clientInstance.event.pin.delete(id);
 		setPinned(false);
 		setPinnedId(null);
 	}
@@ -28,10 +31,18 @@ export default function PinButton(props: { target: string }) {
 	const removeDebounced = debounce(remove, 300);
 
 	onMount(async () => {
-		const result = await client.social.pin.checkStatus(props.target);
-		if (result.isPinned) {
-			setPinned(true);
-			setPinnedId(result.id);
+		try {
+			const clientInstance = await client();
+			const pins = await clientInstance.event.pin.list({
+				target: props.target,
+			});
+			const pinRecord = pins.find((p) => p.message.target === props.target);
+			if (pinRecord) {
+				setPinned(true);
+				setPinnedId(pinRecord.id);
+			}
+		} catch (err) {
+			console.error("ピン状態の確認中にエラー:", err);
 		}
 	});
 

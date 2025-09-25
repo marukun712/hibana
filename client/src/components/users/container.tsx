@@ -1,33 +1,43 @@
-import { createClient } from "@hibana/client";
 import type { profileType } from "@hibana/schema/Profile";
 import { useSearchParams } from "@solidjs/router";
 import { createSignal, For, onMount } from "solid-js";
+import { client } from "~/lib/client";
 import UserCard from "./userCard";
 
 export default function UsersContainer() {
 	const [searchParams] = useSearchParams();
 	const [users, setUsers] = createSignal<profileType[]>();
-	const client = createClient();
 
 	onMount(async () => {
 		const type = searchParams.type as string;
 		const publickey = searchParams.publickey as string;
+		const clientInstance = await client();
 
 		switch (type) {
 			case "follow": {
-				const data = await client.social.follow.getFollows(publickey);
-				const usersData = data.map((data) => {
-					return data.target as profileType;
-				});
-
-				setUsers(usersData);
+				const data = await clientInstance.event.follow.list();
+				const usersData = await Promise.all(
+					data.map(async (followEvent) => {
+						if (followEvent.message.target) {
+							return await clientInstance.profile.get(
+								followEvent.message.target,
+							);
+						}
+						return null;
+					}),
+				);
+				setUsers(usersData.filter(Boolean) as profileType[]);
 				break;
 			}
 			case "follower": {
-				const data = await client.social.follow.getFollowers(publickey);
-				const usersData = data.map((data) => {
-					return data.user;
+				const data = await clientInstance.event.follow.list({
+					target: publickey,
 				});
+				const usersData = await Promise.all(
+					data.map(async (followEvent) => {
+						return await clientInstance.profile.get(followEvent.publickey);
+					}),
+				);
 				setUsers(usersData);
 				break;
 			}

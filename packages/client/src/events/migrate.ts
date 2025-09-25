@@ -1,4 +1,4 @@
-import type { eventType, unknownSchemaType } from "@hibana/schema";
+import type { eventReturnType, unknownSchemaType } from "@hibana/schema";
 import { BaseEventAPI } from "./base";
 
 type Content = {
@@ -11,15 +11,15 @@ export class MigrationAPI extends BaseEventAPI<"event.migrate", Content> {
 		super(repository, publickey, "event.migrate");
 	}
 
-	async get(id: string): Promise<eventType<"event.migrate", Content>> {
+	async get(id: string): Promise<eventReturnType<"event.migrate", Content>> {
 		return await this.getEvent(id);
 	}
 
-	async list(
-		id?: string,
-		target?: string,
-	): Promise<eventType<"event.migrate", Content>[]> {
-		return await this.listEvents(id, target);
+	async list(params?: {
+		id?: string;
+		target?: string;
+	}): Promise<eventReturnType<"event.migrate", Content>[]> {
+		return await this.listEvents(params);
 	}
 
 	async post(content: Content): Promise<string> {

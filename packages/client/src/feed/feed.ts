@@ -73,7 +73,7 @@ export class FeedAPI {
 	}
 
 	async getReplies(postId: string) {
-		const replies = await this.replyAPI.list(undefined, postId);
+		const replies = await this.replyAPI.list({ id: postId });
 		return replies.sort(
 			(a, b) =>
 				new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),

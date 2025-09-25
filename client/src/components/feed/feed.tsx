@@ -1,7 +1,5 @@
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
-import type { FeedItem } from "~/types/feed";
-import { client } from "../../lib/client";
-import { getCurrentUser } from "../../lib/user";
+import { client, type FeedItem } from "~/lib/client";
 import { renderPost } from "../post/postDetail";
 import Loading from "../ui/loading";
 
@@ -18,21 +16,15 @@ export default function Feed(props: {
 	const fetchPosts = async () => {
 		setLoading(true);
 		try {
-			const user = await getCurrentUser();
+			const clientInstance = await client();
 			if (props.user) {
-				const data = await client.event.feed.getUserPosts(
-					props.user,
-					user.repository,
-				);
+				const data = await clientInstance.feed.getUserPosts(props.user);
 				setPosts(data);
 			} else if (props.feedType === "following") {
-				const data = await client.event.feed.getFollowingPosts(
-					user.publickey,
-					user.repository,
-				);
+				const data = await clientInstance.feed.getFollowingPosts();
 				setPosts(data);
 			} else {
-				const data = await client.event.feed.getPosts(user.repository);
+				const data = await clientInstance.feed.getPosts();
 				setPosts(data);
 			}
 		} catch (err) {
@@ -54,8 +46,8 @@ export default function Feed(props: {
 
 		setIsSubmitting(true);
 		try {
-			const user = await getCurrentUser();
-			await client.event.post.add(text().trim(), user.repository);
+			const clientInstance = await client();
+			await clientInstance.event.post.post({ content: text().trim() });
 			setText("");
 			await fetchPosts();
 		} catch (err) {

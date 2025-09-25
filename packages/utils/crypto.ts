@@ -43,15 +43,15 @@ export async function verifySignature(
 	}
 }
 
-export async function createSecureMessage<T>(
+export async function createSecureMessage<T, U>(
 	params: {
-		event: string;
+		event: T;
 		timestamp: string;
-		message: T;
+		message: U;
 		publickey: string;
 	},
 	calculateHash: HashFunction,
-): Promise<eventType<string, T>> {
+): Promise<eventType<T, U>> {
 	const { event, timestamp, message, publickey } = params;
 	if (!publickey) {
 		throw new Error("公開鍵が不正です");

@@ -1,14 +1,14 @@
-import { createClient } from "@hibana/client";
 import { debounce } from "@solid-primitives/scheduled";
 import { createSignal, onMount } from "solid-js";
+import { client } from "~/lib/client";
 
 export default function FollowButton(props: { target: string }) {
 	const [followed, setFollowed] = createSignal(false);
 	const [followedId, setFollowedId] = createSignal<string | null>(null);
-	const client = createClient();
 
 	async function post() {
-		const id = await client.social.follow.add(props.target);
+		const clientInstance = await client();
+		const id = await clientInstance.event.follow.post({ target: props.target });
 		if (id) {
 			setFollowed(true);
 			setFollowedId(id);
@@ -18,7 +18,8 @@ export default function FollowButton(props: { target: string }) {
 	async function remove() {
 		const id = followedId();
 		if (!id) return;
-		await client.social.follow.delete(id);
+		const clientInstance = await client();
+		await clientInstance.event.follow.delete(id);
 		setFollowed(false);
 		setFollowedId(null);
 	}
@@ -27,10 +28,20 @@ export default function FollowButton(props: { target: string }) {
 	const removeDebounced = debounce(remove, 300);
 
 	onMount(async () => {
-		const result = await client.social.follow.checkStatus(props.target);
-		if (result.isFollowed) {
-			setFollowed(true);
-			setFollowedId(result.id);
+		try {
+			const clientInstance = await client();
+			const follows = await clientInstance.event.follow.list({
+				target: props.target,
+			});
+			const followRecord = follows.find(
+				(f) => f.message.target === props.target,
+			);
+			if (followRecord) {
+				setFollowed(true);
+				setFollowedId(followRecord.id);
+			}
+		} catch (err) {
+			console.error("フォロー状態の確認中にエラー:", err);
 		}
 	});
 

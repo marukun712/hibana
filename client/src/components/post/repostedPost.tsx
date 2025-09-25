@@ -1,9 +1,9 @@
 import { AiOutlineRetweet } from "solid-icons/ai";
-import type { PostData, RepostEvent } from "~/types/feed";
+import type { PostEvent, RepostEvent } from "~/lib/client";
 import Post from "./post";
 
 export default function RepostedPost(props: {
-	originalPost: PostData;
+	originalPost: PostEvent;
 	repost: RepostEvent;
 }) {
 	return (

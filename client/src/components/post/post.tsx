@@ -1,9 +1,9 @@
-import type { PostData } from "~/types/feed";
+import type { PostEvent } from "~/lib/client";
 import PinButton from "./button/pinButton";
 import ReplyButton from "./button/replyButton";
 import RepostButton from "./button/repostButton";
 
-export default function Post(props: { post: PostData }) {
+export default function Post(props: { post: PostEvent }) {
 	return (
 		<div class="card bg-base-100 border border-base-300 p-3 sm:p-4 mb-3 sm:mb-4 hover:shadow-md transition-shadow">
 			<div class="flex gap-2 sm:gap-3 md:gap-4">

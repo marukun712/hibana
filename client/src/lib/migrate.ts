@@ -1,20 +1,21 @@
+import { HibanaClient } from "@hibana/client";
 import { unknownEventSchema, type unknownSchemaType } from "@hibana/schema";
 import { z } from "zod";
+import { getBackupData } from "./backup";
 
-async function executeMigration(data: unknownSchemaType[]): Promise<void> {}
+async function executeMigration(_data: unknownSchemaType[]): Promise<void> {}
 
-export async function fromBackup(
-	backupFilename: string,
-	getBackupData: (filename: string) => Promise<unknownSchemaType[]>,
-): Promise<void> {
+export async function fromBackup(backupFilename: string): Promise<void> {
 	const backupData = await getBackupData(backupFilename);
 	await executeMigration(backupData);
 }
 
 export async function fromLatest(
-	getLatestRepositoryData: () => Promise<unknownSchemaType[]>,
+	repository: string,
+	publickey: string,
 ): Promise<void> {
-	const latestData = await getLatestRepositoryData();
+	const client = new HibanaClient(repository, publickey);
+	const latestData = await client.repo.get();
 	await executeMigration(latestData);
 }
 

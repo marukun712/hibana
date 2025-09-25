@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { profileType } from "./Profile";
 
 export const eventSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(
 	eventSchema: T,
@@ -22,10 +23,18 @@ export type eventType<T, U> = {
 	message: U;
 };
 
-export const unknownEventSchema = eventSchema(
-	z.string(),
-	z.record(z.string(), z.any()),
-);
+export type eventReturnType<T, U> = {
+	id: string;
+	publickey: string;
+	signature: string;
+	event: T;
+	timestamp: string;
+	message: U;
+	user: profileType;
+	target: unknownSchemaType & { user: profileType };
+};
+
+export const unknownEventSchema = eventSchema(z.string(), z.any());
 
 export const deleteEventSchema = eventSchema(
 	z.literal("event.delete"),
