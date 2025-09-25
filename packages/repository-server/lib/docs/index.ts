@@ -26,6 +26,7 @@ export const writeDoc = async (document: documentType) => {
 		throw new Error("Verify failed.");
 	}
 	const db = await getDB();
+	console.log(db);
 	await db.put(document);
 };
 

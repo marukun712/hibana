@@ -23,7 +23,9 @@ const options = libp2pDefaults();
 if (options.addresses && process.env.ORBITDB_PORT) {
 	options.addresses.listen = [`/ip4/0.0.0.0/tcp/${process.env.ORBITDB_PORT}`];
 	if (process.env.GLOBAL_IP) {
-		options.addresses.announce = [`/ip4/${process.env.GLOBAL_IP}/tcp/4002`];
+		options.addresses.announce = [
+			`/ip4/${process.env.GLOBAL_IP}/tcp/${process.env.ORBITDB_PORT}`,
+		];
 	}
 } else {
 	throw new Error("ORBITDB_PORT must be set");

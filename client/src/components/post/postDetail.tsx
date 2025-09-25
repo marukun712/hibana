@@ -3,6 +3,7 @@ import {
 	isQuoteRepostEvent,
 	isReplyEvent,
 	isRepostEvent,
+	type PostEvent,
 } from "@hibana/client";
 import type { baseSchemaType } from "@hibana/schema";
 import { useSearchParams } from "@solidjs/router";
@@ -32,7 +33,7 @@ export const renderPost = (item: baseSchemaType) => {
 
 export default function PostDetail() {
 	const [searchParams] = useSearchParams();
-	const [post, setPost] = createSignal<baseSchemaType | null>(null);
+	const [post, setPost] = createSignal<PostEvent | null>(null);
 	const [replies, setReplies] = createSignal<baseSchemaType[]>([]);
 	const [error, setError] = createSignal<string | null>(null);
 	const [replyText, setReplyText] = createSignal("");

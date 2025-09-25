@@ -30,7 +30,6 @@ export class ProfileAPI {
 			},
 			calculateHash,
 		);
-		console.log(createUserDoc);
 		if (doc) await client.profile.$post({ json: doc });
 	}
 

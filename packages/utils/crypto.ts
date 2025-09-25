@@ -20,7 +20,7 @@ export async function signMessage(
 ): Promise<string> {
 	try {
 		const messageHash = await calculateHash(content);
-		return window.nostr.signSchnorr(secp256k1.etc.bytesToHex(messageHash));
+		return window.nostr.signString(secp256k1.etc.bytesToHex(messageHash));
 	} catch (error) {
 		console.error("Signing error:", error);
 		throw error;
