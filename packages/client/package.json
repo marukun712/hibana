@@ -9,6 +9,6 @@
 		"@hibana/schema": "*",
 		"@hibana/utils": "*",
 		"hono": "4.7.11",
-		"zod": "3.25.0"
+		"zod": "3.20.0"
 	}
 }

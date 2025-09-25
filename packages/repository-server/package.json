@@ -2,6 +2,9 @@
 	"name": "@hibana/repository-server",
 	"type": "module",
 	"private": true,
+	"scripts": {
+		"start": "npx tsx index.ts"
+	},
 	"dependencies": {
 		"@hibana/schema": "*",
 		"@hibana/utils": "*",
@@ -26,6 +29,6 @@
 		"helia": "^5.4.1",
 		"hono": "4.7.11",
 		"kubo-rpc-client": "^5.1.0",
-		"zod": "3.25.0"
+		"zod": "3.20.0"
 	}
 }

@@ -2,6 +2,7 @@ version: "3"
 
 tasks:
   client:
+    dir: ./client
     cmds:
       - task: logo
       - npm run dev

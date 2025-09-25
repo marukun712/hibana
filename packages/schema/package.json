@@ -4,6 +4,6 @@
 	"type": "module",
 	"private": true,
 	"dependencies": {
-		"zod": "3.25.0"
+		"zod": "3.20.0"
 	}
 }

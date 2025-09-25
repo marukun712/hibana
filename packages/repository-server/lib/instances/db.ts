@@ -1,5 +1,5 @@
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
-import type { documentType } from "@hibana/schema/Document";
+import type { documentType } from "@hibana/schema";
 import { identify } from "@libp2p/identify";
 import {
 	createOrbitDB,
