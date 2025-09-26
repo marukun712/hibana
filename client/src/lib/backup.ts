@@ -19,7 +19,7 @@ export async function createBackup(
 	const fileHandle = await backupDir.getFileHandle(filename, {
 		create: true,
 	});
-	const data = client.repo.get({ publickey });
+	const data = await client.repo.get({ publickey });
 	const writable = await fileHandle.createWritable();
 	await writable.write(JSON.stringify(data, null, 2));
 	await writable.close();
