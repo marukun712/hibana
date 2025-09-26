@@ -9,13 +9,31 @@ export default function RepostButton(props: {
 	originalPost: PostEvent;
 }) {
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
 	const [reposted, setReposted] = createSignal(false);
 	const [repostId, setRepostId] = createSignal<string | null>(null);
 	const [showQuoteModal, setShowQuoteModal] = createSignal(false);
 
+	async function fetchStatus() {
+		try {
+			const clientInstance = getClient();
+			const publickey = user()?.publickey;
+			if (!clientInstance || !publickey) return;
+			const reposts = await clientInstance.event.repost.list({
+				publickey,
+				target: props.target,
+			});
+			if (reposts.length > 0) {
+				setReposted(true);
+				setRepostId(reposts[0].id);
+			}
+		} catch (err) {
+			console.error("リポスト状態の確認中にエラー:", err);
+		}
+	}
+
 	async function repost() {
 		const clientInstance = getClient();
+		const publickey = user()?.publickey;
 		if (!clientInstance || !publickey) return;
 		if (reposted()) {
 			const id = repostId();
@@ -34,22 +52,7 @@ export default function RepostButton(props: {
 		}
 	}
 
-	onMount(async () => {
-		try {
-			const clientInstance = getClient();
-			if (!clientInstance || !publickey) return;
-			const reposts = await clientInstance.event.repost.list({ publickey });
-			const repostRecord = reposts.find(
-				(r) => r.message.target === props.originalPost.id,
-			);
-			if (repostRecord) {
-				setReposted(true);
-				setRepostId(repostRecord.id);
-			}
-		} catch (err) {
-			console.error("リポスト状態の確認中にエラー:", err);
-		}
-	});
+	onMount(fetchStatus);
 
 	return (
 		<div class="dropdown dropdown-end">

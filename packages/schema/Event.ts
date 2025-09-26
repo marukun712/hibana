@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { profileType } from "./Profile";
+import { profileSchema, type profileType } from "./Profile";
 
 export const eventSchema = <T extends z.ZodTypeAny, U extends z.ZodTypeAny>(
 	eventSchema: T,
@@ -34,7 +34,10 @@ export type feedReturnType<T, U, V = null> = {
 	target: V extends null ? null : V;
 };
 
-export const baseEventSchema = eventSchema(z.string(), z.unknown());
+export const baseEventSchema = eventSchema(
+	z.string(),
+	z.record(z.string(), z.unknown()),
+);
 
 export const deleteEventSchema = eventSchema(
 	z.literal("event.delete"),
@@ -46,7 +49,7 @@ export const deleteEventSchema = eventSchema(
 export const migrateEventSchema = eventSchema(
 	z.literal("event.migrate"),
 	z.object({
-		url: z.string(),
+		doc: profileSchema,
 		body: z.array(baseEventSchema),
 	}),
 );

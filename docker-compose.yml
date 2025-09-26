@@ -10,6 +10,7 @@ services:
       - ORBITDB_PORT=4002
     depends_on:
       - ipfs
+    network_mode: host
 
   repository-2:
     build:
@@ -22,18 +23,17 @@ services:
       - ORBITDB_PORT=4003
     depends_on:
       - ipfs
+    network_mode: host
 
   repository-3:
     build:
       context: ./
-    ports:
-      - "4004:4004"
-      - "8002:8002"
     environment:
       - PORT=8002
       - ORBITDB_PORT=4004
     depends_on:
       - ipfs
+    network_mode: host
 
   ipfs:
     image: ipfs/kubo:latest

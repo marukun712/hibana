@@ -7,7 +7,7 @@ import {
 } from "@hibana/client";
 import type { baseSchemaType } from "@hibana/schema";
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
 import { useAuth } from "~/contexts/authContext";
 import Loading from "../ui/loading";
 import Post from "./post";
@@ -39,7 +39,6 @@ export default function PostDetail() {
 	const [replyText, setReplyText] = createSignal("");
 	const [isSubmittingReply, setIsSubmittingReply] = createSignal(false);
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
 
 	const fetchPosts = async () => {
 		const postId = searchParams.id as string;
@@ -50,8 +49,8 @@ export default function PostDetail() {
 		try {
 			const clientInstance = getClient();
 			if (!clientInstance) return;
-			const PostEvent = await clientInstance.feed.getPostById(postId);
-			setPost(PostEvent);
+			const post = await clientInstance.feed.getPostById(postId);
+			setPost(post);
 			const repliesData = await clientInstance.feed.getReplies(postId);
 			setReplies(repliesData);
 		} catch (err) {
@@ -61,18 +60,15 @@ export default function PostDetail() {
 	};
 
 	onMount(fetchPosts);
-	createEffect(() => {
-		void fetchPosts();
-	});
 
 	const handleReplySubmit = async (e: Event) => {
 		e.preventDefault();
 		const currentPost = post();
 		if (!replyText().trim() || !currentPost) return;
-
 		setIsSubmittingReply(true);
 		try {
 			const clientInstance = getClient();
+			const publickey = user()?.publickey;
 			if (!clientInstance || !publickey) return;
 			await clientInstance.event.reply.post(publickey, {
 				target: currentPost.id,

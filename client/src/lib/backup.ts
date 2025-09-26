@@ -1,3 +1,4 @@
+import type { HibanaClient } from "@hibana/client";
 import { baseEventSchema, type baseSchemaType } from "@hibana/schema";
 import z from "zod";
 
@@ -5,17 +6,20 @@ export interface BackupFile {
 	name: string;
 }
 
-export async function createBackup(): Promise<void> {
+export async function createBackup(
+	client: HibanaClient,
+	publickey: string,
+): Promise<void> {
 	const opfsRoot = await navigator.storage.getDirectory();
 	const backupDir = await opfsRoot.getDirectoryHandle("backups", {
 		create: true,
 	});
-
 	const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 	const filename = `backup-${timestamp}.json`;
 	const fileHandle = await backupDir.getFileHandle(filename, {
 		create: true,
 	});
+	const data = client.repo.get({ publickey });
 	const writable = await fileHandle.createWritable();
 	await writable.write(JSON.stringify(data, null, 2));
 	await writable.close();

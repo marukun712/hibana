@@ -7,10 +7,28 @@ export default function PinButton(props: { target: string }) {
 	const [pinned, setPinned] = createSignal(false);
 	const [pinnedId, setPinnedId] = createSignal<string | null>(null);
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
+
+	async function fetchStatus() {
+		try {
+			const clientInstance = getClient();
+			const publickey = user()?.publickey;
+			if (!clientInstance || !publickey) return;
+			const pins = await clientInstance.event.pin.list({
+				publickey,
+				target: props.target,
+			});
+			if (pins.length > 0) {
+				setPinned(true);
+				setPinnedId(pins[0].id);
+			}
+		} catch (err) {
+			console.error("ピン状態の確認中にエラー:", err);
+		}
+	}
 
 	async function post() {
 		const clientInstance = getClient();
+		const publickey = user()?.publickey;
 		if (!clientInstance || !publickey) return;
 		const eventId = await clientInstance.event.pin.post(publickey, {
 			target: props.target,
@@ -23,6 +41,7 @@ export default function PinButton(props: { target: string }) {
 
 	async function remove() {
 		const id = pinnedId();
+		const publickey = user()?.publickey;
 		if (!id || !publickey) return;
 		const clientInstance = getClient();
 		if (!clientInstance) return;
@@ -34,20 +53,7 @@ export default function PinButton(props: { target: string }) {
 	const postDebounced = debounce(post, 300);
 	const removeDebounced = debounce(remove, 300);
 
-	onMount(async () => {
-		try {
-			const clientInstance = getClient();
-			if (!clientInstance || !publickey) return;
-			const pins = await clientInstance.event.pin.list({ publickey });
-			const pinRecord = pins.find((p) => p.message.target === props.target);
-			if (pinRecord) {
-				setPinned(true);
-				setPinnedId(pinRecord.id);
-			}
-		} catch (err) {
-			console.error("ピン状態の確認中にエラー:", err);
-		}
-	});
+	onMount(fetchStatus);
 
 	return (
 		<button

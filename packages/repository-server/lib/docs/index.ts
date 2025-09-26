@@ -47,7 +47,6 @@ export const searchDocs = async (query: { [key: string]: string }) => {
 			([key, value]) => doc[key as keyof documentType] === value,
 		),
 	);
-	console.log(result);
 	const parsed = searchResult.safeParse(result);
 	if (!parsed.success) {
 		console.error("Search result schema validation failed:", parsed.error);
@@ -56,7 +55,6 @@ export const searchDocs = async (query: { [key: string]: string }) => {
 	const data = parsed.data.map((doc) => {
 		return { value: doc };
 	});
-	console.log(data);
 	return data;
 };
 

@@ -3,8 +3,11 @@ import { createSecureMessage } from "@hibana/utils";
 import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 
-export abstract class BaseEventAPI<TName extends string, TContent, TReturnType>
-	implements EventAPI<TName, TContent, TReturnType>
+export abstract class BaseEventAPI<
+	TName extends string,
+	TContent extends Record<string, unknown>,
+	TReturnType,
+> implements EventAPI<TName, TContent, TReturnType>
 {
 	protected readonly repository: string;
 	readonly name: TName;
@@ -86,7 +89,11 @@ export abstract class BaseEventAPI<TName extends string, TContent, TReturnType>
 	}
 }
 
-export interface EventAPI<TName extends string, TContent, TReturnType> {
+export interface EventAPI<
+	TName extends string,
+	TContent extends Record<string, unknown>,
+	TReturnType,
+> {
 	name: TName;
 	get(id: string): Promise<TReturnType>;
 	list(params?: ListParams): Promise<TReturnType[]>;

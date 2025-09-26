@@ -4,7 +4,7 @@ import { hc } from "hono/client";
 import { calculateHash } from "../hash";
 
 export class ProfileAPI {
-	repository: string;
+	private repository: string;
 
 	constructor(repository: string) {
 		this.repository = repository;

@@ -9,7 +9,6 @@ export default function Feed(props: {
 	feedType?: "all" | "following";
 }) {
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
 	const [posts, setPosts] = createSignal<baseSchemaType[]>([]);
 	const [loading, setLoading] = createSignal(true);
 	const [error, setError] = createSignal<string | null>(null);
@@ -20,6 +19,7 @@ export default function Feed(props: {
 		setLoading(true);
 		try {
 			const clientInstance = getClient();
+			const publickey = user()?.publickey;
 			if (!clientInstance) {
 				setError("クライアントが初期化されていません。");
 				return;
@@ -47,14 +47,11 @@ export default function Feed(props: {
 	};
 
 	onMount(fetchPosts);
-	createEffect(() => {
-		void fetchPosts();
-	});
+	createEffect(fetchPosts);
 
 	const handlePostSubmit = async (e: Event) => {
 		e.preventDefault();
 		if (!text().trim()) return;
-
 		setIsSubmitting(true);
 		try {
 			const clientInstance = getClient();
@@ -62,6 +59,7 @@ export default function Feed(props: {
 				setError("クライアントが初期化されていません。");
 				return;
 			}
+			const publickey = user()?.publickey;
 			if (!publickey) {
 				setError("認証が必要です。");
 				return;

@@ -6,21 +6,20 @@ import {
 import { verifySecureMessage } from "@hibana/utils";
 import { deleteAllEvents, putEvent } from "../../db/index";
 import { calculateHash } from "../hash";
-import { findProfileDoc, updateUser } from "../user";
+import { updateUser } from "../user";
 
 export const migrateRepo = async (event: migrateSchemaType) => {
 	const verify = await verifySecureMessage(event, calculateHash);
 	if (!verify) throw new Error("Verify failed.");
 	await deleteAllEvents(event.publickey);
-	event.message.body.forEach(async (event) => {
-		try {
-			await migrateDoc(event);
-		} catch (error) {
-			console.error("Error migrating event:", error);
-		}
-	});
-	const profile = await findProfileDoc(event.publickey);
-	updateUser({ ...profile, repository: event.message.url });
+	await Promise.all(
+		event.message.body.map((ev) =>
+			migrateDoc(ev).catch((error) => {
+				console.error("Error migrating event:", error);
+			}),
+		),
+	);
+	updateUser(event.message.doc);
 };
 
 export const migrateDoc = async (event: baseSchemaType) => {
@@ -33,5 +32,4 @@ export const migrateDoc = async (event: baseSchemaType) => {
 	}
 	if (!verify) throw new Error("Verify failed.");
 	await putEvent(event);
-	return event;
 };

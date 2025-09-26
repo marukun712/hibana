@@ -14,7 +14,7 @@ export default function ProfileCard() {
 	const [user, setUser] = createSignal<ProfileType>();
 	const [searchParams] = useSearchParams();
 
-	onMount(async () => {
+	async function fetchStatus() {
 		const publickey = searchParams.publickey as string;
 		const clientInstance = getClient();
 		if (!clientInstance) return;
@@ -28,7 +28,7 @@ export default function ProfileCard() {
 			: [];
 		const followers = currentUserPublickey
 			? await clientInstance.event.follow.list({
-					publickey: currentUserPublickey,
+					target: currentUserPublickey,
 				})
 			: [];
 
@@ -37,7 +37,9 @@ export default function ProfileCard() {
 			followCount: follows.length,
 			followerCount: followers.length,
 		});
-	});
+	}
+
+	onMount(fetchStatus);
 
 	return (
 		<div class="mt-2 sm:mt-4">

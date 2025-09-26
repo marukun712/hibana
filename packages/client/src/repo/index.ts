@@ -4,7 +4,7 @@ import { hc } from "hono/client";
 import { z } from "zod";
 
 export class RepositoryAPI {
-	repository: string;
+	private repository: string;
 
 	constructor(repository: string) {
 		this.repository = repository;

@@ -6,10 +6,28 @@ export default function FollowButton(props: { target: string }) {
 	const [followed, setFollowed] = createSignal(false);
 	const [followedId, setFollowedId] = createSignal<string | null>(null);
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
+
+	async function fetchStatus() {
+		try {
+			const clientInstance = getClient();
+			const publickey = user()?.publickey;
+			if (!clientInstance || !publickey) return;
+			const follows = await clientInstance.event.follow.list({
+				publickey,
+				target: props.target,
+			});
+			if (follows.length > 0) {
+				setFollowed(true);
+				setFollowedId(follows[0].id);
+			}
+		} catch (err) {
+			console.error("フォロー状態の確認中にエラー:", err);
+		}
+	}
 
 	async function post() {
 		const clientInstance = getClient();
+		const publickey = user()?.publickey;
 		if (!clientInstance || !publickey) return;
 		const id = await clientInstance.event.follow.post(publickey, {
 			target: props.target,
@@ -22,6 +40,7 @@ export default function FollowButton(props: { target: string }) {
 
 	async function remove() {
 		const id = followedId();
+		const publickey = user()?.publickey;
 		if (!id || !publickey) return;
 		const clientInstance = getClient();
 		if (!clientInstance) return;
@@ -33,22 +52,7 @@ export default function FollowButton(props: { target: string }) {
 	const postDebounced = debounce(post, 300);
 	const removeDebounced = debounce(remove, 300);
 
-	onMount(async () => {
-		try {
-			const clientInstance = getClient();
-			if (!clientInstance || !publickey) return;
-			const follows = await clientInstance.event.follow.list({ publickey });
-			const followRecord = follows.find(
-				(f) => f.message.target === props.target,
-			);
-			if (followRecord) {
-				setFollowed(true);
-				setFollowedId(followRecord.id);
-			}
-		} catch (err) {
-			console.error("フォロー状態の確認中にエラー:", err);
-		}
-	});
+	onMount(fetchStatus);
 
 	return (
 		<form

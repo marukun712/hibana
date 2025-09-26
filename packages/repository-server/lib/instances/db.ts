@@ -1,6 +1,10 @@
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { noise } from "@chainsafe/libp2p-noise";
+import { yamux } from "@chainsafe/libp2p-yamux";
 import type { documentType } from "@hibana/schema";
 import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
 import {
 	createOrbitDB,
 	type Database,
@@ -11,7 +15,8 @@ import {
 import { LevelBlockstore } from "blockstore-level";
 import { LevelDatastore } from "datastore-level";
 import * as dotenv from "dotenv";
-import { createHelia, libp2pDefaults } from "helia";
+import { createHelia } from "helia";
+import { multiaddr } from "kubo-rpc-client";
 import { createLibp2p } from "libp2p";
 
 dotenv.config();
@@ -20,15 +25,15 @@ export class OrbitDBService {
 	private constructor(private db: Database<documentType>) {}
 
 	static async create(): Promise<OrbitDBService> {
-		const options = libp2pDefaults();
-
-		if (options.addresses && process.env.ORBITDB_PORT) {
-			options.addresses.listen = [
-				`/ip4/0.0.0.0/tcp/${process.env.ORBITDB_PORT}`,
-			];
+		const addresses: { listen: string[]; announce: string[] } = {
+			listen: [],
+			announce: [],
+		};
+		if (process.env.ORBITDB_PORT) {
+			addresses.listen = [`/ip4/0.0.0.0/tcp/${process.env.ORBITDB_PORT}`];
 
 			if (process.env.GLOBAL_IP) {
-				options.addresses.announce = [
+				addresses.announce = [
 					`/ip4/${process.env.GLOBAL_IP}/tcp/${process.env.ORBITDB_PORT}`,
 				];
 			}
@@ -36,18 +41,35 @@ export class OrbitDBService {
 			throw new Error("ORBITDB_PORT must be set");
 		}
 
-		if (options.services) {
-			options.services.pubsub = gossipsub({
-				allowPublishToZeroTopicPeers: true,
-			});
-			options.services.identify = identify();
-		}
-
 		const blockstore = new LevelBlockstore("./helia/blocks");
 		const datastore = new LevelDatastore("./orbitdb/store");
 
-		const libp2p = await createLibp2p(options);
+		const libp2p = await createLibp2p({
+			addresses: addresses,
+			transports: [tcp()],
+			peerDiscovery: [mdns()],
+			connectionEncrypters: [noise()],
+			streamMuxers: [yamux()],
+			services: {
+				pubsub: gossipsub({
+					allowPublishToZeroTopicPeers: true,
+				}),
+				identify: identify(),
+			},
+		});
 		const ipfs = await createHelia({ datastore, blockstore, libp2p });
+
+		libp2p.dial(multiaddr("/ip4/0.0.0.0/tcp/4002")).catch((error) => {
+			console.error(`ピアへの接続に失敗しました`, error);
+		});
+
+		libp2p.dial(multiaddr("/ip4/0.0.0.0/tcp/4003")).catch((error) => {
+			console.error(`ピアへの接続に失敗しました`, error);
+		});
+
+		libp2p.dial(multiaddr("/ip4/0.0.0.0/tcp/4004")).catch((error) => {
+			console.error(`ピアへの接続に失敗しました`, error);
+		});
 
 		const storage = await IPFSBlockStorage({ ipfs, pin: true });
 		const orbitdb = await createOrbitDB({ ipfs });

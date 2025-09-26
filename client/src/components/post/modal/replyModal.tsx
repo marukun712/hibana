@@ -12,15 +12,14 @@ export default function ReplyModal(props: {
 	const [text, setText] = createSignal("");
 	const [posting, setPosting] = createSignal(false);
 	const { client: getClient, user } = useAuth();
-	const publickey = user()?.publickey;
 
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 		if (!text().trim()) return;
-
 		setPosting(true);
 		try {
 			const clientInstance = getClient();
+			const publickey = user()?.publickey;
 			if (!clientInstance || !publickey) return;
 			await clientInstance.event.reply.post(publickey, {
 				target: props.originalPost.id,
